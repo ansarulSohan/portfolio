@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm typecheck *)",
+      "PowerShell(pnpm build *)",
+      "PowerShell(pnpm lint *)",
+      "PowerShell(pnpm *)"
+    ]
+  }
+}
