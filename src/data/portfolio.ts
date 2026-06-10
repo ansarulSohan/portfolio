@@ -11,7 +11,10 @@ export const portfolio: PortfolioData = {
   },
   about: {
     bio: [
-      "This is the foundation of the intergalactic portfolio.",
+      `I'm a full stack developer based in Oslo. My background is in backend systems and cloud infrastructure, and I recently finished an MSc in Informatics at the University of Oslo where my thesis looked at energy efficiency across different cloud deployment models.
+Most of my work has been on the backend side. I've built APIs and services that handle real traffic, set up CI/CD pipelines, and spent time at Simula Research Laboratory working on open-source research tooling. I like understanding how systems actually behave in production, not just how they're designed on paper.
+I work mainly with Node.js, TypeScript, Python, PostgreSQL, and Docker. I've also done frontend work in React and I'm comfortable moving across the stack when needed.
+I'm currently open to new opportunities, whether that's a full-time role or freelance work. If something here looks like a fit, feel free to reach out.`,
     ],
     philosophies: ["Craft > hype", "Systems thinking", "Ship & iterate"],
   },
@@ -35,4 +38,3 @@ export const portfolio: PortfolioData = {
   experience: [],
   education: [],
 };
-
