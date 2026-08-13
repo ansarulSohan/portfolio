@@ -4,7 +4,8 @@
       "Bash(pnpm typecheck *)",
       "PowerShell(pnpm build *)",
       "PowerShell(pnpm lint *)",
-      "PowerShell(pnpm *)"
+      "PowerShell(pnpm *)",
+      "Bash(pnpm -v)"
     ]
   }
 }
