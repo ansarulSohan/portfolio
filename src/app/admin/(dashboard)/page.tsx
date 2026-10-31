@@ -72,7 +72,7 @@ export default async function AdminDashboardPage() {
     },
     !profile?.avatar && {
       href: "/admin/profile",
-      text: "Add a profile photo (uploads arrive in the next update)",
+      text: "Add a profile photo",
     },
   ].filter((todo): todo is { href: string; text: string } => Boolean(todo));
 

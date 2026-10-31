@@ -5,6 +5,7 @@ import { saveProfile } from "@/actions/admin/profile";
 import type { ProfileDTO } from "@/lib/dto";
 import { EditorSection, EditorShell } from "../EditorShell";
 import { MarkdownField, TagsField, TextAreaField, TextField } from "../fields";
+import { AvatarField, ResumeField } from "../UploadFields";
 import { useAdminAction } from "../useAdminAction";
 
 /** Form state: every text field is a string ("" = not set). */
@@ -100,6 +101,14 @@ export function ProfileEditor({ profile }: { profile: ProfileDTO | null }) {
             description="Shown publicly in the contact section."
           />
         </div>
+      </EditorSection>
+
+      <EditorSection
+        title="Photo & résumé"
+        description="These save as soon as they're uploaded, separately from the Save button."
+      >
+        <AvatarField current={profile?.avatar ?? null} />
+        <ResumeField current={profile?.resume ?? null} />
       </EditorSection>
 
       <EditorSection

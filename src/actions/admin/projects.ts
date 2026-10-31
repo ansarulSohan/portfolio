@@ -10,6 +10,7 @@ import {
   type Direction,
 } from "@/lib/admin-crud";
 import { requireAdmin } from "@/lib/auth";
+import { deleteObject } from "@/lib/s3";
 import { TAGS } from "@/lib/cache-tags";
 import { connectDB } from "@/lib/db";
 import { projectFormSchema } from "@/lib/validation";
@@ -76,6 +77,12 @@ export async function deleteProject(id: string): Promise<ActionResult> {
   await connectDB();
   const deleted = await Project.findByIdAndDelete(id).lean();
   if (!deleted) return { ok: false, message: "Project not found." };
+  // Remove its images from the bucket too.
+  await Promise.all(
+    [deleted.cover?.key, ...deleted.gallery.map((image) => image.key)].map(
+      deleteObject,
+    ),
+  );
   refresh(deleted.slug);
   return { ok: true, message: `Deleted “${deleted.title}”.` };
 }

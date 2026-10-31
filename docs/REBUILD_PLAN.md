@@ -25,7 +25,8 @@ Decisions already made:
 | 4. Public site   | ✅ Done (2026-10-31): home sections, /projects, /projects/[slug], contact form, sitemap, robots, OG image                                                                                                                |
 | 5. Auth          | ✅ Done (2026-10-31): JWT session cookie, proxy gate, requireAdmin(), login/logout, rate limits                                                                                                                          |
 | 6. Admin CRUD    | 🟡 Built (2026-10-31): editors for profile, projects, experience, education, skills; messages; settings + password. Logic and rendering are tested; the in-browser click-through is pending (needs the owner to sign in) |
-| 7–10             | Not started                                                                                                                                                                                                              |
+| 7. Uploads       | 🟡 Built and tested against R2 (2026-10-31). Browser uploads need bucket CORS and `S3_PUBLIC_URL` set (see notes)                                                                                                        |
+| 8–10             | Not started                                                                                                                                                                                                              |
 
 **Notes from phase 1:**
 
@@ -71,6 +72,16 @@ Decisions already made:
 - **Proxy fix:** removed the "signed in → leave /admin/login" redirect. With revoked-but-signed cookies it looped forever between `/admin` and `/admin/login`. `signOutEverywhere` also clears this browser's cookie.
 - Validation messages are plain language because they're shown to the editor.
 - Scripts that import `server-only` modules must run with `tsx --conditions=react-server`.
+
+**Notes from phase 7:**
+
+- **Flow:** `requestUpload` (server action; replaces the planned `/api/upload/presign` route, and server actions get Next's built-in origin check) returns a presigned PUT. The browser uploads straight to the bucket with progress. `setAvatar` / `setResume` / `setProjectCover` / `setProjectGallery` then confirm with `HeadObject` that the object exists with an allowed type and size before saving it, and delete whatever it replaced. Deleting a project deletes its images.
+- **Signatures:** `signableHeaders` includes Content-Type and Content-Length, so R2 rejects any upload whose type or size differs from what the server approved. Without this, R2 accepted a different Content-Type (verified).
+- **Checksums:** the S3 client uses `requestChecksumCalculation: "WHEN_REQUIRED"`. Recent SDKs otherwise add CRC32 checksum params that break browser presigned uploads.
+- **Keys:** `uploads/<kind>/<uuid>.<ext>`. Only raster images (JPEG, PNG, WebP, AVIF; max 5 MB) and PDF (max 10 MB) are allowed. No SVG.
+- **Bucket setup still required:**
+  1. **CORS** on the bucket allowing `PUT` with the `Content-Type` header from the site origins (`http://localhost:3000` and the production domain).
+  2. **Public access** (custom domain or r2.dev) set as `S3_PUBLIC_URL`, also as a Coolify build variable, since `next/image` remotePatterns are fixed at build time.
 
 ---
 

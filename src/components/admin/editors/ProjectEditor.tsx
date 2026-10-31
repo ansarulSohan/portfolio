@@ -22,6 +22,7 @@ import {
   TextAreaField,
   TextField,
 } from "../fields";
+import { CoverField, GalleryField } from "../UploadFields";
 import { useAdminAction } from "../useAdminAction";
 
 function toForm(project: ProjectDTO | null) {
@@ -252,11 +253,27 @@ export function ProjectEditor({ project }: { project: ProjectDTO | null }) {
         </div>
       </EditorSection>
 
-      <EditorSection title="Images" description="Cover image and gallery.">
-        <p className="text-muted-foreground text-sm">
-          Image uploads are coming in the next update. Existing images are kept
-          when you save.
-        </p>
+      <EditorSection
+        title="Images"
+        description="Images save as soon as they're uploaded, separately from the Save button."
+      >
+        {isNew ? (
+          <p className="text-muted-foreground text-sm">
+            Create the project first, then add a cover image and gallery.
+          </p>
+        ) : (
+          <>
+            <CoverField
+              projectId={project.id}
+              current={project.cover ?? null}
+            />
+            <GalleryField
+              key={project.gallery.map((image) => image.key).join(",")}
+              projectId={project.id}
+              current={project.gallery}
+            />
+          </>
+        )}
       </EditorSection>
     </EditorShell>
   );
