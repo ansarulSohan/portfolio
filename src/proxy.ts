@@ -13,22 +13,24 @@ export async function proxy(request: NextRequest) {
     request.cookies.get(SESSION_COOKIE)?.value,
   );
 
-  let response: NextResponse;
-  if (isLogin && session) {
-    response = NextResponse.redirect(new URL("/admin", request.url));
-  } else if (!isLogin && !session) {
-    const login = new URL("/admin/login", request.url);
-    if (pathname !== "/admin")
-      login.searchParams.set("next", pathname + search);
-    response = NextResponse.redirect(login);
-  } else {
-    response = NextResponse.next();
-  }
+  // Note: no "already signed in → leave the login page" redirect. The proxy only
+  // checks signatures, so a revoked-but-signed cookie would bounce between
+  // /admin (requireAdmin → login) and /admin/login (proxy → admin) forever.
+  const response =
+    !isLogin && !session
+      ? NextResponse.redirect(loginUrl(request, pathname + search))
+      : NextResponse.next();
 
   // Keep the admin out of search engines and never cached by shared caches.
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
   response.headers.set("Cache-Control", "private, no-store");
   return response;
+}
+
+function loginUrl(request: NextRequest, next: string): URL {
+  const login = new URL("/admin/login", request.url);
+  if (next !== "/admin") login.searchParams.set("next", next);
+  return login;
 }
 
 export const config = {

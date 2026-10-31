@@ -10,7 +10,7 @@ Personal portfolio for **G.M. Ansarul Kabir** (GitHub `ansarulSohan`). The old V
 
 **`docs/REBUILD_PLAN.md` is the source of truth** for architecture, data model, accessibility requirements and phase order. Read it before starting work, and update its phase status as phases complete.
 
-Phases 1–5 are done (scaffold, data layer, design system, public site, admin auth). Admin CRUD (phase 6) comes next.
+Phases 1–6 are built (scaffold, data layer, design system, public site, admin auth, admin editors). Uploads (phase 7) come next.
 
 ## Stack notes
 
@@ -34,6 +34,7 @@ There are no tests yet. Vitest and Playwright arrive in phase 9.
 ```bash
 pnpm seed [--dry-run|--force]   # import legacy content + first admin into MongoDB (reads .env.local)
 MONGODB_URI= pnpm build         # must pass: proves no page queries the DB at build time
+pnpm exec tsx --conditions=react-server --tsconfig tsconfig.json <script>  # run a script that imports server-only modules
 ```
 
 ## Architecture
@@ -43,6 +44,7 @@ MONGODB_URI= pnpm build         # must pass: proves no page queries the DB at bu
 - `lib/validation/` (zod) is the single definition of every content shape, used by the seed script, forms and server actions. Months are `"YYYY-MM"` strings; an empty `end` means "present".
 - **Theme and accessibility:** `lib/prefs.ts` is the source of truth. `PREFS_SCRIPT` (inline, runs before paint) and `applyPrefs()` (React menu) must stay in sync. Styles key off `<html>` attributes in `globals.css`: `.dark`, `data-contrast`, `data-text`, `data-font`, `data-links`, `data-spacing`, `data-motion`. The colour tokens were checked against WCAG AA, so re-check contrast if you change them.
 - **Admin auth:** `src/proxy.ts` is only a fast signature check. **Every admin page, layout and server action must call `requireAdmin()`** from `lib/auth.ts`, which checks the database and the session version. Server actions are public endpoints, so the proxy doesn't protect them. Admin routes live in `src/app/admin/(dashboard)/`, behind a `<Suspense>` gate.
+- **Admin editors:** client form state → server action with a plain object → `ActionResult`. Use `useAdminAction` (in `components/admin/`) and the accessible field components in `components/admin/fields.tsx`. Write updates with `toUpdate()` so cleared fields are unset. Don't pass plain functions from server pages to client components; pass server actions (`.bind()` them for fixed arguments) or strings.
 - Models import `mongoose` as the default export and use `mongoose.models.X`, because `tsx` runs scripts as plain Node ESM, where `models` isn't a named export.
 
 ## Conventions

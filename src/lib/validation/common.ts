@@ -4,13 +4,28 @@ import { z } from "zod";
 const emptyToUndefined = (v: unknown) =>
   v === null || (typeof v === "string" && v.trim() === "") ? undefined : v;
 
-export const requiredText = (max: number) => z.string().trim().min(1).max(max);
+// Error messages are shown next to admin form fields, so keep them plain.
+const tooLong = (max: number) =>
+  `Keep this under ${max.toLocaleString("en")} characters.`;
+
+export const requiredText = (max: number) =>
+  z
+    .string({ error: "This field is required." })
+    .trim()
+    .min(1, "This field is required.")
+    .max(max, tooLong(max));
 
 export const optionalText = (max: number) =>
-  z.preprocess(emptyToUndefined, z.string().trim().max(max).optional());
+  z.preprocess(
+    emptyToUndefined,
+    z.string().trim().max(max, tooLong(max)).optional(),
+  );
 
 /** http(s) URL only: blocks javascript:, data: and other schemes in user-supplied links. */
-export const httpUrl = z.url({ protocol: /^https?$/ });
+export const httpUrl = z.url({
+  protocol: /^https?$/,
+  error: "Enter a full web address starting with https://",
+});
 
 export const optionalUrl = z.preprocess(emptyToUndefined, httpUrl.optional());
 
@@ -19,8 +34,8 @@ export const optionalUrl = z.preprocess(emptyToUndefined, httpUrl.optional());
  * <input type="month">, and avoid timezone shifts that Date values cause.
  */
 export const month = z
-  .string()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use the format YYYY-MM");
+  .string({ error: "Choose a month." })
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Choose a month.");
 
 /** An end month; empty means "present" (still ongoing). */
 export const optionalMonth = z.preprocess(emptyToUndefined, month.optional());
@@ -28,9 +43,9 @@ export const optionalMonth = z.preprocess(emptyToUndefined, month.optional());
 /** A string list from tag inputs: trimmed, empty entries dropped, duplicates removed. */
 export const stringList = (maxItems: number, maxLength: number) =>
   z
-    .array(z.string().trim().max(maxLength))
+    .array(z.string().trim().max(maxLength, tooLong(maxLength)))
     .transform((items) => [...new Set(items.filter(Boolean))])
-    .pipe(z.array(z.string()).max(maxItems));
+    .pipe(z.array(z.string()).max(maxItems, `Add at most ${maxItems}.`));
 
 /** An uploaded image in the bucket. Alt text is required for accessibility. */
 export const imageSchema = z.object({

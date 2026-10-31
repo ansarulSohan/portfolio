@@ -17,14 +17,15 @@ Decisions already made:
 
 ## Status
 
-| Phase            | State                                                                                                     |
-| ---------------- | --------------------------------------------------------------------------------------------------------- |
-| 1. Scaffold      | ✅ Done (2026-10-31): Next.js 16.4, Tailwind v4, shadcn/ui (radix-nova); Vite and 3D code removed         |
-| 2. Data layer    | ✅ Done (2026-10-31): models, zod schemas, DTOs, cached queries, `pnpm seed`; Atlas seeded                |
-| 3. Design system | ✅ Done (2026-10-31): AA-checked tokens (light, dark, high contrast ×2), prefs script, accessibility menu |
-| 4. Public site   | ✅ Done (2026-10-31): home sections, /projects, /projects/[slug], contact form, sitemap, robots, OG image |
-| 5. Auth          | ✅ Done (2026-10-31): JWT session cookie, proxy gate, requireAdmin(), login/logout, rate limits           |
-| 6–10             | Not started                                                                                               |
+| Phase            | State                                                                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Scaffold      | ✅ Done (2026-10-31): Next.js 16.4, Tailwind v4, shadcn/ui (radix-nova); Vite and 3D code removed                                                                                                                        |
+| 2. Data layer    | ✅ Done (2026-10-31): models, zod schemas, DTOs, cached queries, `pnpm seed`; Atlas seeded                                                                                                                               |
+| 3. Design system | ✅ Done (2026-10-31): AA-checked tokens (light, dark, high contrast ×2), prefs script, accessibility menu                                                                                                                |
+| 4. Public site   | ✅ Done (2026-10-31): home sections, /projects, /projects/[slug], contact form, sitemap, robots, OG image                                                                                                                |
+| 5. Auth          | ✅ Done (2026-10-31): JWT session cookie, proxy gate, requireAdmin(), login/logout, rate limits                                                                                                                          |
+| 6. Admin CRUD    | 🟡 Built (2026-10-31): editors for profile, projects, experience, education, skills; messages; settings + password. Logic and rendering are tested; the in-browser click-through is pending (needs the owner to sign in) |
+| 7–10             | Not started                                                                                                                                                                                                              |
 
 **Notes from phase 1:**
 
@@ -59,6 +60,17 @@ Decisions already made:
 - `lib/session-token.ts` (jose, HS256, 7 days) has no `server-only` import so the proxy can use it. `AUTH_SECRET` must be at least 32 characters, or signing throws and every token is rejected.
 - Login is rate limited per hashed IP (10 per 15 min) and per email (20 per 15 min), shows one generic error, and runs bcrypt against a dummy hash for unknown emails, so timing doesn't reveal which emails exist. `?next=` only accepts `/admin…` paths.
 - Admin pages read cookies, so the `(dashboard)` layout renders behind `<Suspense>`.
+
+**Notes from phase 6:**
+
+- **Pattern:** client editors keep form state in React and call server actions with a plain object (`useAdminAction` handles pending state, toasts, field errors and focus on the first invalid field). Every action runs `requireAdmin()`, then a zod parse, then the DB write, then `updateTag()`. Results are typed by `ActionResult` (`lib/action-result.ts`).
+- **Clearing fields:** `toUpdate()` (`lib/admin-crud.ts`) puts cleared optional fields in `$unset`, so emptying a field really removes it. The form schemas (`profileFormSchema`, `projectFormSchema`) omit image fields, so a form save never touches uploads.
+- **zod 4:** `.omit()` throws on refined schemas, so each refined schema is built from an exported `*Fields` object.
+- **Reordering** uses up/down buttons (keyboard and screen-reader friendly); `moveDocument()` renumbers the list 0..n-1. Drag and drop was not added.
+- **Experience, education and skills** share `actions/admin/lists.ts`. Its `kind` argument is whitelisted, and the pages pass bound actions (`moveListItem.bind(null, "experience")`).
+- **Proxy fix:** removed the "signed in → leave /admin/login" redirect. With revoked-but-signed cookies it looped forever between `/admin` and `/admin/login`. `signOutEverywhere` also clears this browser's cookie.
+- Validation messages are plain language because they're shown to the editor.
+- Scripts that import `server-only` modules must run with `tsx --conditions=react-server`.
 
 ---
 
