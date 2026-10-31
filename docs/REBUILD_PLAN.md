@@ -26,7 +26,8 @@ Decisions already made:
 | 5. Auth          | ✅ Done (2026-10-31): JWT session cookie, proxy gate, requireAdmin(), login/logout, rate limits                                                                                                                          |
 | 6. Admin CRUD    | 🟡 Built (2026-10-31): editors for profile, projects, experience, education, skills; messages; settings + password. Logic and rendering are tested; the in-browser click-through is pending (needs the owner to sign in) |
 | 7. Uploads       | 🟡 Built and tested against R2 (2026-10-31). Browser uploads need bucket CORS and `S3_PUBLIC_URL` set (see notes)                                                                                                        |
-| 8–10             | Not started                                                                                                                                                                                                              |
+| 8. Hardening     | ✅ Done (2026-10-31): CSP + security headers, error pages, `/api/health`. CSP enforcement still to be verified in Playwright (phase 9)                                                                                   |
+| 9–10             | Not started                                                                                                                                                                                                              |
 
 **Notes from phase 1:**
 
@@ -84,6 +85,14 @@ Decisions already made:
 - **Bucket setup still required:**
   1. **CORS** on the bucket allowing `PUT` with the `Content-Type` header from the site origins (`http://localhost:3000` and the production domain).
   2. **Public access** (custom domain or r2.dev) set as `S3_PUBLIC_URL`, also as a Coolify build variable, since `next/image` remotePatterns are fixed at build time.
+
+**Notes from phase 8:**
+
+- **CSP** is built per request in `lib/csp.ts` and set by `src/proxy.ts`, which now runs on all page routes (static assets excluded). This lets `connect-src` use the runtime R2 endpoint. Scripts allow `'unsafe-inline'`, because nonces are incompatible with partial prerendering. Everything else is locked down: `object-src 'none'`, `frame-ancestors 'none'`, `base-uri`/`form-action 'self'`, and `connect-src` limited to self plus the bucket. `'unsafe-eval'` and `ws:` are allowed only in dev.
+- **Fixed headers** in `next.config.ts`: HSTS (2 years), nosniff, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and no `X-Powered-By`.
+- **Error boundaries:** `(site)/error.tsx`, `admin/(dashboard)/error.tsx`, and `global-error.tsx` with inline styles, because global CSS isn't available there. In Next 16 the recovery prop is `retry`, and `error` is `unknown`.
+- **`/api/health`** pings MongoDB and returns 200 `{status:"ok"}` or 503. Point Coolify's health check at it.
+- **Verification so far:** no console or CSP violations on page loads. The Claude-in-Chrome extension bypasses CSP in tabs it controls (eval ran despite a correct header), so enforcement has to be checked in Playwright.
 
 ---
 
@@ -201,7 +210,7 @@ The look is a clean, editorial "engineer portfolio": generous whitespace, a rest
 - **Login protection:** rate limiting on login and the contact form, using an in-memory or Mongo TTL counter keyed by a hash of the IP, plus a honeypot field on the contact form. Cloudflare Turnstile is optional.
 - **Uploads:** the presign endpoint is admin-only and checks MIME type and size (images up to 5 MB, the PDF up to 10 MB). Object keys are random UUIDs.
 - **Markdown** output is sanitized.
-- **Security headers** are set in `next.config.ts`: CSP, X-Frame-Options and Referrer-Policy.
+- **Security headers:** the CSP is set per request in `src/proxy.ts`; the fixed headers are in `next.config.ts` (see the phase 8 notes).
 - **⚠️ Secrets:** `.env.example` currently contains what looks like a **real Atlas password** (`DB_PASS=...`). It's gitignored via `.env*`, so it hasn't been committed, but `.env.example` is meant to be committed in the new setup. Replace the values with placeholders and **rotate that Atlas password**. Real secrets live only in Coolify env vars and a local `.env.local`.
 
 ---

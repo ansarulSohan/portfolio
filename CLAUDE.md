@@ -10,7 +10,7 @@ Personal portfolio for **G.M. Ansarul Kabir** (GitHub `ansarulSohan`). The old V
 
 **`docs/REBUILD_PLAN.md` is the source of truth** for architecture, data model, accessibility requirements and phase order. Read it before starting work, and update its phase status as phases complete.
 
-Phases 1–7 are built (scaffold, data layer, design system, public site, admin auth, admin editors, uploads). Hardening (phase 8) comes next.
+Phases 1–8 are built (scaffold, data layer, design system, public site, admin auth, admin editors, uploads, hardening). Tests (phase 9) come next.
 
 ## Stack notes
 
@@ -43,6 +43,7 @@ pnpm exec tsx --conditions=react-server --tsconfig tsconfig.json <script>  # run
 - **Data flow:** Mongoose models (`src/models/`) → DTO mappers (`lib/dto.ts`, plain serializable objects) → public queries (`lib/queries.ts`). Each public query awaits `io()` and then calls a tagged `"use cache"` function, so **every component that calls a query must be inside `<Suspense>`**, and the build never touches MongoDB. Admin writes must call `updateTag()` with the tags in `lib/cache-tags.ts`.
 - `lib/validation/` (zod) is the single definition of every content shape, used by the seed script, forms and server actions. Months are `"YYYY-MM"` strings; an empty `end` means "present".
 - **Theme and accessibility:** `lib/prefs.ts` is the source of truth. `PREFS_SCRIPT` (inline, runs before paint) and `applyPrefs()` (React menu) must stay in sync. Styles key off `<html>` attributes in `globals.css`: `.dark`, `data-contrast`, `data-text`, `data-font`, `data-links`, `data-spacing`, `data-motion`. The colour tokens were checked against WCAG AA, so re-check contrast if you change them.
+- **Proxy and CSP:** `src/proxy.ts` runs on every page route. It sets the per-request CSP (`lib/csp.ts`) and gates `/admin`. A new third-party script, font, image or API host must be added to `lib/csp.ts`, or the browser will block it.
 - **Admin auth:** `src/proxy.ts` is only a fast signature check. **Every admin page, layout and server action must call `requireAdmin()`** from `lib/auth.ts`, which checks the database and the session version. Server actions are public endpoints, so the proxy doesn't protect them. Admin routes live in `src/app/admin/(dashboard)/`, behind a `<Suspense>` gate.
 - **Admin editors:** client form state → server action with a plain object → `ActionResult`. Use `useAdminAction` (in `components/admin/`) and the accessible field components in `components/admin/fields.tsx`. Write updates with `toUpdate()` so cleared fields are unset. Don't pass plain functions from server pages to client components; pass server actions (`.bind()` them for fixed arguments) or strings.
 - **Uploads:** browser → presigned PUT (`lib/s3.ts`, Content-Type and Content-Length signed) → `set*` action verifies with `HeadObject` before saving. Rules live in `lib/uploads.ts` and are shared by client and server. Never save a URL the server didn't issue; `isOwnUpload()` checks this.
