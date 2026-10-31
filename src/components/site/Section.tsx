@@ -22,6 +22,10 @@ export function Section({
       className={cn("animate-fade-up border-t py-16 sm:py-20", className)}
     >
       <div className="mb-10 max-w-2xl">
+        <span
+          aria-hidden
+          className="from-primary to-brand-2 mb-4 block h-1 w-12 rounded-full bg-gradient-to-r"
+        />
         <h2
           id={headingId}
           className="text-2xl font-semibold tracking-tight sm:text-3xl"

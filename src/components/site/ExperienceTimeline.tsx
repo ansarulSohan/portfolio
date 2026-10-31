@@ -7,12 +7,12 @@ export function ExperienceTimeline({ items }: { items: ExperienceDTO[] }) {
   if (items.length === 0) return null;
   return (
     <Section id="experience" title="Experience">
-      <ol className="relative flex flex-col gap-10 border-l pl-6 sm:pl-8">
+      <ol className="border-primary/30 relative flex flex-col gap-10 border-l-2 pl-6 sm:pl-8">
         {items.map((item) => (
           <li key={item.id} className="relative">
             <span
               aria-hidden
-              className="bg-background border-primary absolute top-1.5 -left-[calc(1.5rem+5px)] size-2.5 rounded-full border-2 sm:-left-[calc(2rem+5px)]"
+              className="bg-primary ring-background absolute top-1.5 -left-[calc(1.5rem+6px)] size-2.5 rounded-full ring-4 sm:-left-[calc(2rem+6px)]"
             />
             <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
               <h3 className="text-lg font-semibold tracking-tight">

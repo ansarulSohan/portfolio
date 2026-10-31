@@ -1,0 +1,17 @@
+# Keep secrets, build output and local tooling out of the image build context.
+.env*
+!.env.example
+.git
+.next
+node_modules
+coverage
+test-results
+playwright-report
+blob-report
+*.tsbuildinfo
+.DS_Store
+.claude
+docs
+tests
+playwright.config.ts
+vitest.config.ts
