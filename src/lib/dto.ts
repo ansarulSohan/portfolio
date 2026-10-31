@@ -146,7 +146,6 @@ export function toSkillCategoryDTO(
 }
 
 export const DEFAULT_SETTINGS: SettingsDTO = {
-  defaultTheme: "system",
   sections: {
     about: true,
     projects: true,
@@ -161,7 +160,6 @@ export function toSettingsDTO(doc: Lean<SettingsDoc> | null): SettingsDTO {
   if (!doc) return DEFAULT_SETTINGS;
   const sections = DEFAULT_SETTINGS.sections;
   return {
-    defaultTheme: doc.defaultTheme ?? DEFAULT_SETTINGS.defaultTheme,
     sections: {
       about: doc.sections?.about ?? sections.about,
       projects: doc.sections?.projects ?? sections.projects,

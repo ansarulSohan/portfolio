@@ -1,5 +1,5 @@
 import "server-only";
-import { cacheLife, cacheTag } from "next/cache";
+import { cacheLife, cacheTag, io } from "next/cache";
 import { connectDB } from "./db";
 import { TAGS } from "./cache-tags";
 import {
@@ -32,11 +32,19 @@ import {
   type SkillCategoryDoc,
 } from "@/models";
 
-// Public, cached reads. Content only changes through the admin, which calls
-// updateTag() after each write, so the "hours" lifetime is just a safety net
-// for edits made directly in Atlas.
+/*
+ * Public reads. Each exported function awaits io() and then calls a
+ * "use cache" function:
+ *
+ * - io() suspends during `next build`, so the database is never queried at
+ *   build time. The Docker image builds without MONGODB_URI, and callers must
+ *   sit inside <Suspense> (the fallback ships in the static shell).
+ * - At request time io() resolves immediately and the cached result is served
+ *   from memory. Admin writes call updateTag() so edits show on the next request.
+ *   The "hours" lifetime is only a safety net for edits made directly in Atlas.
+ */
 
-export async function getProfile(): Promise<ProfileDTO | null> {
+async function cachedProfile(): Promise<ProfileDTO | null> {
   "use cache";
   cacheTag(TAGS.profile);
   cacheLife("hours");
@@ -45,7 +53,7 @@ export async function getProfile(): Promise<ProfileDTO | null> {
   return doc ? toProfileDTO(doc) : null;
 }
 
-export async function getSettings(): Promise<SettingsDTO> {
+async function cachedSettings(): Promise<SettingsDTO> {
   "use cache";
   cacheTag(TAGS.settings);
   cacheLife("hours");
@@ -54,15 +62,14 @@ export async function getSettings(): Promise<SettingsDTO> {
   return toSettingsDTO(doc);
 }
 
-/** Published projects in manual order; `featuredOnly` for the home page. */
-export async function getPublishedProjects(
-  options: { featuredOnly?: boolean } = {},
+async function cachedPublishedProjects(
+  featuredOnly: boolean,
 ): Promise<ProjectDTO[]> {
   "use cache";
   cacheTag(TAGS.projects);
   cacheLife("hours");
   await connectDB();
-  const filter = options.featuredOnly
+  const filter = featuredOnly
     ? { published: true, featured: true }
     : { published: true };
   const docs = await Project.find(filter)
@@ -71,8 +78,7 @@ export async function getPublishedProjects(
   return docs.map(toProjectDTO);
 }
 
-/** A published project by slug, or null (unpublished projects 404 publicly). */
-export async function getPublishedProject(
+async function cachedPublishedProject(
   slug: string,
 ): Promise<ProjectDTO | null> {
   "use cache";
@@ -85,7 +91,7 @@ export async function getPublishedProject(
   return doc ? toProjectDTO(doc) : null;
 }
 
-export async function getExperience(): Promise<ExperienceDTO[]> {
+async function cachedExperience(): Promise<ExperienceDTO[]> {
   "use cache";
   cacheTag(TAGS.experience);
   cacheLife("hours");
@@ -96,7 +102,7 @@ export async function getExperience(): Promise<ExperienceDTO[]> {
   return docs.map(toExperienceDTO);
 }
 
-export async function getEducation(): Promise<EducationDTO[]> {
+async function cachedEducation(): Promise<EducationDTO[]> {
   "use cache";
   cacheTag(TAGS.education);
   cacheLife("hours");
@@ -107,7 +113,7 @@ export async function getEducation(): Promise<EducationDTO[]> {
   return docs.map(toEducationDTO);
 }
 
-export async function getSkillCategories(): Promise<SkillCategoryDTO[]> {
+async function cachedSkillCategories(): Promise<SkillCategoryDTO[]> {
   "use cache";
   cacheTag(TAGS.skills);
   cacheLife("hours");
@@ -116,4 +122,45 @@ export async function getSkillCategories(): Promise<SkillCategoryDTO[]> {
     .sort({ order: 1 })
     .lean<Lean<SkillCategoryDoc>[]>();
   return docs.map(toSkillCategoryDTO);
+}
+
+export async function getProfile(): Promise<ProfileDTO | null> {
+  await io();
+  return cachedProfile();
+}
+
+export async function getSettings(): Promise<SettingsDTO> {
+  await io();
+  return cachedSettings();
+}
+
+/** Published projects in manual order; `featuredOnly` for the home page. */
+export async function getPublishedProjects(
+  options: { featuredOnly?: boolean } = {},
+): Promise<ProjectDTO[]> {
+  await io();
+  return cachedPublishedProjects(options.featuredOnly ?? false);
+}
+
+/** A published project by slug, or null (unpublished projects 404 publicly). */
+export async function getPublishedProject(
+  slug: string,
+): Promise<ProjectDTO | null> {
+  await io();
+  return cachedPublishedProject(slug);
+}
+
+export async function getExperience(): Promise<ExperienceDTO[]> {
+  await io();
+  return cachedExperience();
+}
+
+export async function getEducation(): Promise<EducationDTO[]> {
+  await io();
+  return cachedEducation();
+}
+
+export async function getSkillCategories(): Promise<SkillCategoryDTO[]> {
+  await io();
+  return cachedSkillCategories();
 }

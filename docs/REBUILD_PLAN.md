@@ -17,11 +17,13 @@ Decisions already made:
 
 ## Status
 
-| Phase         | State                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------- |
-| 1. Scaffold   | ✅ Done (2026-10-31): Next.js 16.4, Tailwind v4, shadcn/ui (radix-nova); Vite and 3D code removed |
-| 2. Data layer | ✅ Done (2026-10-31): models, zod schemas, DTOs, cached queries, `pnpm seed`; Atlas seeded        |
-| 3–10          | Not started                                                                                       |
+| Phase            | State                                                                                                     |
+| ---------------- | --------------------------------------------------------------------------------------------------------- |
+| 1. Scaffold      | ✅ Done (2026-10-31): Next.js 16.4, Tailwind v4, shadcn/ui (radix-nova); Vite and 3D code removed         |
+| 2. Data layer    | ✅ Done (2026-10-31): models, zod schemas, DTOs, cached queries, `pnpm seed`; Atlas seeded                |
+| 3. Design system | ✅ Done (2026-10-31): AA-checked tokens (light, dark, high contrast ×2), prefs script, accessibility menu |
+| 4. Public site   | ✅ Done (2026-10-31): home sections, /projects, /projects/[slug], contact form, sitemap, robots, OG image |
+| 5–10             | Not started                                                                                               |
 
 **Notes from phase 1:**
 
@@ -36,7 +38,18 @@ Decisions already made:
 - Skill levels are labels (`familiar` / `proficient` / `expert`); the seed maps old 0–100 values to them (≥85 expert, ≥70 proficient).
 - `pnpm seed --dry-run` validates the old content against the zod schemas without touching the DB. `pnpm seed` only fills empty collections; `--force` replaces content but never admins or messages.
 - Models use `mongoose.models.X` from the default import: under plain Node ESM (tsx), mongoose has no `models` named export.
-- **Decide in phase 4:** with `cacheComponents`, `"use cache"` reads run during `next build` to prerender pages, so the Docker build would need `MONGODB_URI`. Either mark it as a build variable in Coolify, or keep DB reads out of the build-time shell (wrap them in `<Suspense>` so they resolve at request time).
+- ~~Decide in phase 4~~ (decided, see phase 3–4 notes): with `cacheComponents`, `"use cache"` reads run during `next build` to prerender pages, so the Docker build would need `MONGODB_URI`. Either mark it as a build variable in Coolify, or keep DB reads out of the build-time shell (wrap them in `<Suspense>` so they resolve at request time).
+
+**Notes from phases 3–4:**
+
+- **No database access at build time.** Each public query in `lib/queries.ts` awaits `io()` and then calls an inner `"use cache"` function. During `next build`, `io()` suspends, so pages prerender a static shell (header, skeletons) and content streams in per request from the in-memory cache. The Docker build needs no `MONGODB_URI`. Callers must sit inside `<Suspense>`. Verified: `MONGODB_URI= pnpm build` passes.
+- **Build-time variables** (non-secret, set as build variables in Coolify): `NEXT_PUBLIC_SITE_URL` (inlined into metadataBase and the sitemap) and `S3_PUBLIC_URL` (`next/image` remotePatterns). Secrets (`MONGODB_URI`, `AUTH_SECRET`, S3 keys) are runtime only.
+- **Theme and accessibility preferences don't use next-themes.** `lib/prefs.ts` holds an inline `<head>` script that applies stored prefs as `<html>` attributes before paint, plus `applyPrefs()` for the React menu. Keep the two in sync. The phase 8 CSP must allow this inline script (nonce or hash).
+- **Settings `defaultTheme` was dropped.** The root layout must stay static (no DB), and following the visitor's OS theme is the better default.
+- **Social links are labelled text** ("GitHub ↗"): lucide 1.x removed brand icons.
+- **Animation is CSS only** (`animate-fade-up`), not the `motion` library. Reduced motion applies from the OS setting or the menu.
+- **Unknown project slugs** render the 404 UI with `noindex`. The HTTP status is 200 because the response is already streaming.
+- **The contact form** saves to `messages`, is rate limited (5/hour per hashed IP, `rateLimits` collection with TTL) and has a honeypot field.
 
 ---
 

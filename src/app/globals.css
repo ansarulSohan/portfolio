@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* `dark:` utilities apply under <html class="dark">, set by the prefs script. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -18,11 +19,6 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -48,87 +44,201 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Colour tokens. Every text/background pair below was checked against
+ * WCAG 2.2 AA (4.5:1 for text); high-contrast modes exceed 7:1, with 3:1+ borders.
+ * Primary is the single brand accent (indigo); everything else is neutral.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.99 0.002 250);
+  --foreground: oklch(0.18 0.02 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.02 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.18 0.02 260);
+  --primary: oklch(0.47 0.19 265);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.965 0.005 255);
+  --secondary-foreground: oklch(0.18 0.02 260);
+  --muted: oklch(0.965 0.005 255);
+  --muted-foreground: oklch(0.46 0.02 260);
+  --accent: oklch(0.955 0.012 265);
+  --accent-foreground: oklch(0.18 0.02 260);
+  --destructive: oklch(0.53 0.21 27);
+  --border: oklch(0.88 0.008 255);
+  --input: oklch(0.88 0.008 255);
+  --ring: oklch(0.47 0.19 265);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.975 0.004 255);
+  --sidebar-foreground: oklch(0.18 0.02 260);
+  --sidebar-primary: oklch(0.47 0.19 265);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.955 0.012 265);
+  --sidebar-accent-foreground: oklch(0.18 0.02 260);
+  --sidebar-border: oklch(0.88 0.008 255);
+  --sidebar-ring: oklch(0.47 0.19 265);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.16 0.015 265);
+  --foreground: oklch(0.96 0.005 260);
+  --card: oklch(0.2 0.016 265);
+  --card-foreground: oklch(0.96 0.005 260);
+  --popover: oklch(0.2 0.016 265);
+  --popover-foreground: oklch(0.96 0.005 260);
+  --primary: oklch(0.74 0.13 268);
+  --primary-foreground: oklch(0.17 0.03 265);
+  --secondary: oklch(0.24 0.016 265);
+  --secondary-foreground: oklch(0.96 0.005 260);
+  --muted: oklch(0.24 0.016 265);
+  --muted-foreground: oklch(0.72 0.015 260);
+  --accent: oklch(0.26 0.03 266);
+  --accent-foreground: oklch(0.96 0.005 260);
+  --destructive: oklch(0.7 0.17 22);
+  --border: oklch(0.36 0.015 265);
+  --input: oklch(0.36 0.015 265);
+  --ring: oklch(0.74 0.13 268);
+  --sidebar: oklch(0.19 0.016 265);
+  --sidebar-foreground: oklch(0.96 0.005 260);
+  --sidebar-primary: oklch(0.74 0.13 268);
+  --sidebar-primary-foreground: oklch(0.17 0.03 265);
+  --sidebar-accent: oklch(0.26 0.03 266);
+  --sidebar-accent-foreground: oklch(0.96 0.005 260);
+  --sidebar-border: oklch(0.36 0.015 265);
+  --sidebar-ring: oklch(0.74 0.13 268);
+}
+
+/* High contrast (accessibility menu): pure black/white, strong borders. */
+:root[data-contrast="more"] {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0.38 0.2 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.95 0 0);
+  --muted-foreground: oklch(0.25 0 0);
+  --accent: oklch(0.92 0 0);
+  --accent-foreground: oklch(0 0 0);
+  --destructive: oklch(0.45 0.2 27);
+  --border: oklch(0.35 0 0);
+  --input: oklch(0.35 0 0);
+  --ring: oklch(0.38 0.2 265);
+}
+
+:root.dark[data-contrast="more"] {
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.1 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.1 0 0);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(0.86 0.1 268);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.18 0 0);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.18 0 0);
+  --muted-foreground: oklch(0.9 0 0);
+  --accent: oklch(0.22 0 0);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.8 0.13 22);
+  --border: oklch(0.78 0 0);
+  --input: oklch(0.78 0 0);
+  --ring: oklch(0.86 0.1 268);
+}
+
+:root[data-contrast="more"] a:not([data-slot]) {
+  text-decoration: underline;
+}
+
+/* Text size: the layout uses rem throughout, so scaling the root scales everything. */
+:root[data-text="lg"] {
+  font-size: 112.5%;
+}
+:root[data-text="xl"] {
+  font-size: 125%;
+}
+
+/* Hyperlegible font (Atkinson Hyperlegible), designed for low-vision readers. */
+:root[data-font="hyperlegible"] {
+  --font-sans: var(--font-hyperlegible);
+}
+
+/* Underline every link, not just those in body text. */
+:root[data-links="underline"] a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* WCAG 1.4.12 text spacing: wider letters, words, lines and paragraphs. */
+:root[data-spacing="wide"] body {
+  letter-spacing: 0.06em;
+  word-spacing: 0.16em;
+  line-height: 1.8;
+}
+:root[data-spacing="wide"] p {
+  margin-bottom: 1.5em;
+}
+
+/* Reduced motion: from the OS setting by default, or forced from the menu. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+    /* Anchor targets land below the sticky header. */
+    scroll-padding-top: 5rem;
+  }
   body {
     @apply bg-background text-foreground;
+  }
+  /* A clearly visible keyboard focus ring everywhere (WCAG 2.4.7 / 2.4.13). */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
-  html {
-    @apply font-sans;
+}
+
+/* Subtle entrance for page sections; disabled by the reduced-motion rules above. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
   }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
 }

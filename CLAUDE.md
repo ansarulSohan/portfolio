@@ -10,14 +10,14 @@ Personal portfolio for **G.M. Ansarul Kabir** (GitHub `ansarulSohan`). The old V
 
 **`docs/REBUILD_PLAN.md` is the source of truth** for architecture, data model, accessibility requirements and phase order. Read it before starting work, and update its phase status as phases complete.
 
-Phase 1 (scaffold) is done. Phases 2 to 10 have not been built yet.
+Phases 1–4 are done (scaffold, data layer, design system, public site). The admin (auth, CRUD, uploads) comes next.
 
 ## Stack notes
 
 - **Next.js 16** (App Router, React 19, TypeScript strict). `next.config.ts` enables `cacheComponents` and `partialPrefetching`. Next 16 APIs differ from older versions; for example, the middleware file is `proxy.ts`. Per `AGENTS.md`, check `node_modules/next/dist/docs/` before using a Next API.
 - **Tailwind v4** is wired through the `@tailwindcss/turbopack` loader in `next.config.ts`, not PostCSS. Theme tokens are CSS variables in `src/app/globals.css` (`:root` and `.dark`), mapped in `@theme inline`.
 - **shadcn/ui** uses the `radix-nova` style with Lucide icons (see `components.json`). Add components with `pnpm dlx shadcn@latest add <name>`. Class merging comes from the `cn` package (shadcn's own), re-exported from `src/lib/utils.ts`.
-- `scripts/data/legacy-portfolio.ts` holds the old site's content. It exists only for the phase 2 seed script; delete it after seeding.
+- `scripts/data/legacy-portfolio.ts` holds the old site's content. `pnpm seed` reads it to fill an empty database and create the first admin. It has already been seeded into Atlas; delete it once production is deployed.
 
 ## Commands
 
@@ -31,7 +31,22 @@ pnpm typecheck    # tsc --noEmit
 
 There are no tests yet. Vitest and Playwright arrive in phase 9.
 
+```bash
+pnpm seed [--dry-run|--force]   # import legacy content + first admin into MongoDB (reads .env.local)
+MONGODB_URI= pnpm build         # must pass: proves no page queries the DB at build time
+```
+
+## Architecture
+
+- `src/app/(site)/` holds the public pages, which share the header and footer in `(site)/layout.tsx`. The root `layout.tsx` stays static: fonts, the prefs `<head>` script and `PrefsProvider`.
+- **Data flow:** Mongoose models (`src/models/`) → DTO mappers (`lib/dto.ts`, plain serializable objects) → public queries (`lib/queries.ts`). Each public query awaits `io()` and then calls a tagged `"use cache"` function, so **every component that calls a query must be inside `<Suspense>`**, and the build never touches MongoDB. Admin writes must call `updateTag()` with the tags in `lib/cache-tags.ts`.
+- `lib/validation/` (zod) is the single definition of every content shape, used by the seed script, forms and server actions. Months are `"YYYY-MM"` strings; an empty `end` means "present".
+- **Theme and accessibility:** `lib/prefs.ts` is the source of truth. `PREFS_SCRIPT` (inline, runs before paint) and `applyPrefs()` (React menu) must stay in sync. Styles key off `<html>` attributes in `globals.css`: `.dark`, `data-contrast`, `data-text`, `data-font`, `data-links`, `data-spacing`, `data-motion`. The colour tokens were checked against WCAG AA, so re-check contrast if you change them.
+- Models import `mongoose` as the default export and use `mongoose.models.X`, because `tsx` runs scripts as plain Node ESM, where `models` isn't a named export.
+
 ## Conventions
 
 - Env vars are listed in `.env.example`, with placeholders only. Real values go in `.env.local` (gitignored) or Coolify.
 - Unused vars and args are allowed when prefixed with `_`.
+- shadcn components import `cn` from `@/lib/utils`. The CLI generates `from "cn"`, so fix that after `shadcn add`.
+- No hardcoded personal content: anything the owner might change belongs in MongoDB and should be editable in the admin.

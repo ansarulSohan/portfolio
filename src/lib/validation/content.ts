@@ -121,7 +121,6 @@ const sectionsSchema = z.object({
 export const SECTION_KEYS = sectionsSchema.keyof().options;
 
 export const settingsSchema = z.object({
-  defaultTheme: z.enum(["system", "light", "dark"]),
   sections: sectionsSchema,
 });
 

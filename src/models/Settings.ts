@@ -8,11 +8,6 @@ import mongoose, {
 /** Singleton: site-wide options edited in /admin/settings. */
 const settingsSchema = new Schema(
   {
-    defaultTheme: {
-      type: String,
-      enum: ["system", "light", "dark"],
-      default: "system",
-    },
     sections: {
       about: { type: Boolean, default: true },
       projects: { type: Boolean, default: true },
