@@ -17,10 +17,11 @@ Decisions already made:
 
 ## Status
 
-| Phase       | State                                                                                             |
-| ----------- | ------------------------------------------------------------------------------------------------- |
-| 1. Scaffold | ✅ Done (2026-10-31): Next.js 16.4, Tailwind v4, shadcn/ui (radix-nova); Vite and 3D code removed |
-| 2–10        | Not started                                                                                       |
+| Phase         | State                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| 1. Scaffold   | ✅ Done (2026-10-31): Next.js 16.4, Tailwind v4, shadcn/ui (radix-nova); Vite and 3D code removed |
+| 2. Data layer | ✅ Done (2026-10-31): models, zod schemas, DTOs, cached queries, `pnpm seed`; Atlas seeded        |
+| 3–10          | Not started                                                                                       |
 
 **Notes from phase 1:**
 
@@ -28,6 +29,14 @@ Decisions already made:
 - `cacheComponents` is on, so data caching uses the `"use cache"` directive with `cacheTag()`, and saves call `revalidateTag()` / `updateTag()`. It does not use `unstable_cache`.
 - Tailwind runs through the `@tailwindcss/turbopack` loader, not PostCSS.
 - The old content lives in `scripts/data/legacy-portfolio.ts`, ready for the seed script.
+
+**Notes from phase 2:**
+
+- Months are stored as `"YYYY-MM"` strings, not Dates: they sort as text and match `<input type="month">`. An empty `end` means "present".
+- Skill levels are labels (`familiar` / `proficient` / `expert`); the seed maps old 0–100 values to them (≥85 expert, ≥70 proficient).
+- `pnpm seed --dry-run` validates the old content against the zod schemas without touching the DB. `pnpm seed` only fills empty collections; `--force` replaces content but never admins or messages.
+- Models use `mongoose.models.X` from the default import: under plain Node ESM (tsx), mongoose has no `models` named export.
+- **Decide in phase 4:** with `cacheComponents`, `"use cache"` reads run during `next build` to prerender pages, so the Docker build would need `MONGODB_URI`. Either mark it as a build variable in Coolify, or keep DB reads out of the build-time shell (wrap them in `<Suspense>` so they resolve at request time).
 
 ---
 
