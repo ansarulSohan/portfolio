@@ -25,7 +25,10 @@ let client: S3Client | null = null;
 
 function s3(): S3Client {
   client ??= new S3Client({
-    endpoint: env("S3_ENDPOINT"),
+    // Cloudflare shows the S3 API address with the bucket appended
+    // (https://<account>.r2.cloudflarestorage.com/<bucket>). The SDK adds the
+    // bucket itself, so keep only the origin to avoid /<bucket>/<bucket>/… keys.
+    endpoint: new URL(env("S3_ENDPOINT")).origin,
     region: process.env.S3_REGION || "auto",
     credentials: {
       accessKeyId: env("S3_ACCESS_KEY_ID"),

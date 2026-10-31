@@ -79,6 +79,8 @@ Decisions already made:
 - **Signatures:** `signableHeaders` includes Content-Type and Content-Length, so R2 rejects any upload whose type or size differs from what the server approved. Without this, R2 accepted a different Content-Type (verified).
 - **Checksums:** the S3 client uses `requestChecksumCalculation: "WHEN_REQUIRED"`. Recent SDKs otherwise add CRC32 checksum params that break browser presigned uploads.
 - **Keys:** `uploads/<kind>/<uuid>.<ext>`. Only raster images (JPEG, PNG, WebP, AVIF; max 5 MB) and PDF (max 10 MB) are allowed. No SVG.
+- **Endpoint:** `lib/s3.ts` uses only the origin of `S3_ENDPOINT`. Cloudflare displays the S3 address with `/<bucket>` appended, and passing that through produced `/<bucket>/<bucket>/…` URLs that broke CORS.
+- The app's R2 token is (correctly) object read/write only, so bucket CORS must be set in the Cloudflare dashboard.
 - **Bucket setup still required:**
   1. **CORS** on the bucket allowing `PUT` with the `Content-Type` header from the site origins (`http://localhost:3000` and the production domain).
   2. **Public access** (custom domain or r2.dev) set as `S3_PUBLIC_URL`, also as a Coolify build variable, since `next/image` remotePatterns are fixed at build time.
