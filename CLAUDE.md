@@ -10,7 +10,7 @@ Personal portfolio for **G.M. Ansarul Kabir** (GitHub `ansarulSohan`). The old V
 
 **`docs/REBUILD_PLAN.md` is the source of truth** for architecture, data model, accessibility requirements and phase order. Read it before starting work, and update its phase status as phases complete.
 
-Phases 1–8 are built (scaffold, data layer, design system, public site, admin auth, admin editors, uploads, hardening). Tests (phase 9) come next.
+Phases 1–9 are built (scaffold, data layer, design system, public site, admin auth, admin editors, uploads, hardening, tests). Deployment (phase 10) comes next.
 
 ## Stack notes
 
@@ -29,7 +29,14 @@ pnpm lint         # eslint (next core-web-vitals + typescript + prettier)
 pnpm typecheck    # tsc --noEmit
 ```
 
-There are no tests yet. Vitest and Playwright arrive in phase 9.
+```bash
+pnpm test                       # Vitest unit tests (tests/unit)
+pnpm exec vitest run tests/unit/utils.test.ts -t "slugify"   # one file / one test
+pnpm test:e2e                   # Playwright: builds, seeds + uses the throwaway portfolio_e2e DB, drops it after
+pnpm exec playwright test tests/e2e/admin.spec.ts             # one spec
+```
+
+E2E tests need `MONGODB_URI` in `.env.local` (the database name is swapped for `portfolio_e2e`) and `pnpm exec playwright install chromium` once.
 
 ```bash
 pnpm seed [--dry-run|--force]   # import legacy content + first admin into MongoDB (reads .env.local)

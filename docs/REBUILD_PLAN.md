@@ -27,7 +27,8 @@ Decisions already made:
 | 6. Admin CRUD    | 🟡 Built (2026-10-31): editors for profile, projects, experience, education, skills; messages; settings + password. Logic and rendering are tested; the in-browser click-through is pending (needs the owner to sign in) |
 | 7. Uploads       | 🟡 Built and tested against R2 (2026-10-31). Browser uploads need bucket CORS and `S3_PUBLIC_URL` set (see notes)                                                                                                        |
 | 8. Hardening     | ✅ Done (2026-10-31): CSP + security headers, error pages, `/api/health`. CSP enforcement still to be verified in Playwright (phase 9)                                                                                   |
-| 9–10             | Not started                                                                                                                                                                                                              |
+| 9. Tests         | ✅ Done (2026-10-31): 42 Vitest unit tests + 44 Playwright e2e tests (incl. axe in 4 colour modes), all passing                                                                                                          |
+| 10. Deploy       | Not started                                                                                                                                                                                                              |
 
 **Notes from phase 1:**
 
@@ -93,6 +94,14 @@ Decisions already made:
 - **Error boundaries:** `(site)/error.tsx`, `admin/(dashboard)/error.tsx`, and `global-error.tsx` with inline styles, because global CSS isn't available there. In Next 16 the recovery prop is `retry`, and `error` is `unknown`.
 - **`/api/health`** pings MongoDB and returns 200 `{status:"ok"}` or 503. Point Coolify's health check at it.
 - **Verification so far:** no console or CSP violations on page loads. The Claude-in-Chrome extension bypasses CSP in tabs it controls (eval ran despite a correct header), so enforcement has to be checked in Playwright.
+
+**Notes from phase 9:**
+
+- `pnpm test` runs Vitest (`tests/unit/`): validation, slugs, dates, prefs, upload rules, session tokens, the post-login redirect guard, `toUpdate` and the CSP. `server-only` is aliased to a stub in `vitest.config.ts`.
+- `pnpm test:e2e` runs Playwright (`tests/e2e/`) against a **production build on port 3200** using a separate **`portfolio_e2e` database**: the web server command runs `pnpm seed --force` against it first, and `global-teardown.ts` drops it afterwards. That teardown refuses to drop any other database. The test admin and secret in `tests/e2e/env.ts` exist only there. Real content is never touched (verified after the run).
+- **Coverage:** axe (WCAG 2.2 A/AA, serious/critical) on 5 pages × light/dark/high-contrast/high-contrast-dark; the preferences menu (including no flash before hydration, checked by blocking JS bundles); public pages, the mobile menu and 404s; contact form → admin inbox; admin login/redirect/logout; project create → publish → public page → edit → delete; profile edit and clear; section hiding; reordering; security headers; CSP enforcement; anti-framing.
+- **Real bugs the tests found and fixed:** the root 404 page had no `<title>`; the accessibility menu overflowed the window at larger text with no way to scroll (now scrolls within the available height).
+- **CSP testing gotcha:** Chrome exempts DevTools-injected code (`page.evaluate`, `addScriptTag`, and the Claude-in-Chrome extension) from `'unsafe-eval'`, so "eval ran" proves nothing. The CSP test checks `connect-src` blocking instead.
 
 ---
 

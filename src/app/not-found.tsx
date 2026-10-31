@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { SkipLink } from "@/components/a11y/SkipLink";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import SiteNotFound from "./(site)/not-found";
+
+// Screen readers announce the page title on navigation, so a 404 needs one too.
+export const metadata: Metadata = {
+  title: "Page not found",
+  robots: { index: false },
+};
 
 /** Unmatched URLs render outside the (site) layout, so add its chrome here. */
 export default function NotFound() {

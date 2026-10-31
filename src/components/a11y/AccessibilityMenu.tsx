@@ -120,7 +120,11 @@ export function AccessibilityMenu() {
           <AccessibilityIcon aria-hidden />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)]">
+      {/* Scrolls inside itself when large text or spacing makes it taller than the window. */}
+      <PopoverContent
+        align="end"
+        className="max-h-[var(--radix-popover-content-available-height)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto"
+      >
         <PopoverHeader>
           <PopoverTitle>Display &amp; accessibility</PopoverTitle>
           <PopoverDescription>Saved on this device.</PopoverDescription>
