@@ -10,7 +10,7 @@ Personal portfolio for **G.M. Ansarul Kabir** (GitHub `ansarulSohan`). The old V
 
 **`docs/REBUILD_PLAN.md` is the source of truth** for architecture, data model, accessibility requirements and phase order. Read it before starting work, and update its phase status as phases complete.
 
-Phases 1–4 are done (scaffold, data layer, design system, public site). The admin (auth, CRUD, uploads) comes next.
+Phases 1–5 are done (scaffold, data layer, design system, public site, admin auth). Admin CRUD (phase 6) comes next.
 
 ## Stack notes
 
@@ -42,6 +42,7 @@ MONGODB_URI= pnpm build         # must pass: proves no page queries the DB at bu
 - **Data flow:** Mongoose models (`src/models/`) → DTO mappers (`lib/dto.ts`, plain serializable objects) → public queries (`lib/queries.ts`). Each public query awaits `io()` and then calls a tagged `"use cache"` function, so **every component that calls a query must be inside `<Suspense>`**, and the build never touches MongoDB. Admin writes must call `updateTag()` with the tags in `lib/cache-tags.ts`.
 - `lib/validation/` (zod) is the single definition of every content shape, used by the seed script, forms and server actions. Months are `"YYYY-MM"` strings; an empty `end` means "present".
 - **Theme and accessibility:** `lib/prefs.ts` is the source of truth. `PREFS_SCRIPT` (inline, runs before paint) and `applyPrefs()` (React menu) must stay in sync. Styles key off `<html>` attributes in `globals.css`: `.dark`, `data-contrast`, `data-text`, `data-font`, `data-links`, `data-spacing`, `data-motion`. The colour tokens were checked against WCAG AA, so re-check contrast if you change them.
+- **Admin auth:** `src/proxy.ts` is only a fast signature check. **Every admin page, layout and server action must call `requireAdmin()`** from `lib/auth.ts`, which checks the database and the session version. Server actions are public endpoints, so the proxy doesn't protect them. Admin routes live in `src/app/admin/(dashboard)/`, behind a `<Suspense>` gate.
 - Models import `mongoose` as the default export and use `mongoose.models.X`, because `tsx` runs scripts as plain Node ESM, where `models` isn't a named export.
 
 ## Conventions

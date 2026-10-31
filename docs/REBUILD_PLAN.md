@@ -23,7 +23,8 @@ Decisions already made:
 | 2. Data layer    | ✅ Done (2026-10-31): models, zod schemas, DTOs, cached queries, `pnpm seed`; Atlas seeded                |
 | 3. Design system | ✅ Done (2026-10-31): AA-checked tokens (light, dark, high contrast ×2), prefs script, accessibility menu |
 | 4. Public site   | ✅ Done (2026-10-31): home sections, /projects, /projects/[slug], contact form, sitemap, robots, OG image |
-| 5–10             | Not started                                                                                               |
+| 5. Auth          | ✅ Done (2026-10-31): JWT session cookie, proxy gate, requireAdmin(), login/logout, rate limits           |
+| 6–10             | Not started                                                                                               |
 
 **Notes from phase 1:**
 
@@ -50,6 +51,14 @@ Decisions already made:
 - **Animation is CSS only** (`animate-fade-up`), not the `motion` library. Reduced motion applies from the OS setting or the menu.
 - **Unknown project slugs** render the 404 UI with `noindex`. The HTTP status is 200 because the response is already streaming.
 - **The contact form** saves to `messages`, is rate limited (5/hour per hashed IP, `rateLimits` collection with TTL) and has a honeypot field.
+
+**Notes from phase 5:**
+
+- **Two layers of checks.** `src/proxy.ts` is a fast gate that only verifies the cookie's signature and expiry, redirects to `/admin/login?next=…`, and sets `X-Robots-Tag: noindex` and `Cache-Control: no-store`. **`requireAdmin()` (`lib/auth.ts`) is the real check:** it confirms the admin exists and that the token's `v` matches `Admin.sessionVersion`. Every admin layout, page and **server action** must call it.
+- **Revocation:** incrementing `Admin.sessionVersion` signs out every session. Phase 6's "change password" must increment it and then issue a fresh session.
+- `lib/session-token.ts` (jose, HS256, 7 days) has no `server-only` import so the proxy can use it. `AUTH_SECRET` must be at least 32 characters, or signing throws and every token is rejected.
+- Login is rate limited per hashed IP (10 per 15 min) and per email (20 per 15 min), shows one generic error, and runs bcrypt against a dummy hash for unknown emails, so timing doesn't reveal which emails exist. `?next=` only accepts `/admin…` paths.
+- Admin pages read cookies, so the `(dashboard)` layout renders behind `<Suspense>`.
 
 ---
 
@@ -163,7 +172,7 @@ The look is a clean, editorial "engineer portfolio": generous whitespace, a rest
 ## Security
 
 - **Admin bootstrap:** the first run seeds the admin from the `ADMIN_EMAIL` and `ADMIN_PASSWORD` env vars, only when no admin exists yet. After that, change the password in the UI.
-- **Sessions:** a JWT signed with `AUTH_SECRET` in an `httpOnly`, `Secure`, `SameSite=Lax` cookie with a 7-day expiry. It is checked in `middleware.ts` and checked again in every server action and admin route handler with `requireAdmin()`.
+- **Sessions:** a JWT signed with `AUTH_SECRET` in an `httpOnly`, `Secure`, `SameSite=Lax` cookie with a 7-day expiry. It is checked in `proxy.ts` and checked again in every server action and admin route handler with `requireAdmin()`.
 - **Login protection:** rate limiting on login and the contact form, using an in-memory or Mongo TTL counter keyed by a hash of the IP, plus a honeypot field on the contact form. Cloudflare Turnstile is optional.
 - **Uploads:** the presign endpoint is admin-only and checks MIME type and size (images up to 5 MB, the PDF up to 10 MB). Object keys are random UUIDs.
 - **Markdown** output is sanitized.

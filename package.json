@@ -17,6 +17,7 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.1",
+    "jose": "^6.2.14",
     "lucide-react": "^1.66.0",
     "mongoose": "^9.11.4",
     "next": "16.4.3",

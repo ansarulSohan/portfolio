@@ -16,6 +16,11 @@ const adminSchema = new Schema(
     },
     /** bcrypt hash; the plain password is never stored. */
     passwordHash: { type: String, required: true },
+    /**
+     * Embedded in session tokens. Incrementing it (password change, "sign out
+     * everywhere") makes every previously issued session invalid.
+     */
+    sessionVersion: { type: Number, required: true, default: 0 },
   },
   { timestamps: true },
 );
