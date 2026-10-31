@@ -47,64 +47,69 @@
 /*
  * Colour tokens. Every text/background pair below was checked against
  * WCAG 2.2 AA (4.5:1 for text); high-contrast modes exceed 7:1, with 3:1+ borders.
- * Primary is the single brand accent (indigo); everything else is neutral.
+ * Primary is the single brand accent (indigo); neutrals carry a faint indigo tint.
  */
 :root {
-  --background: oklch(0.99 0.002 250);
+  --background: oklch(0.968 0.013 262);
   --foreground: oklch(0.18 0.02 260);
-  --card: oklch(1 0 0);
+  --card: oklch(0.995 0.003 260);
   --card-foreground: oklch(0.18 0.02 260);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.995 0.003 260);
   --popover-foreground: oklch(0.18 0.02 260);
   --primary: oklch(0.47 0.19 265);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.965 0.005 255);
+  --secondary: oklch(0.94 0.018 262);
   --secondary-foreground: oklch(0.18 0.02 260);
-  --muted: oklch(0.965 0.005 255);
-  --muted-foreground: oklch(0.46 0.02 260);
-  --accent: oklch(0.955 0.012 265);
+  --muted: oklch(0.94 0.018 262);
+  --muted-foreground: oklch(0.45 0.03 262);
+  --accent: oklch(0.93 0.035 268);
   --accent-foreground: oklch(0.18 0.02 260);
   --destructive: oklch(0.53 0.21 27);
-  --border: oklch(0.88 0.008 255);
-  --input: oklch(0.88 0.008 255);
+  --border: oklch(0.87 0.018 262);
+  --input: oklch(0.87 0.018 262);
   --ring: oklch(0.47 0.19 265);
   --radius: 0.625rem;
-  --sidebar: oklch(0.975 0.004 255);
+  /* Decorative only (page glow): a soft indigo and a cooler sky tint. */
+  --glow-1: oklch(0.55 0.2 268 / 0.18);
+  --glow-2: oklch(0.72 0.12 215 / 0.2);
+  --sidebar: oklch(0.96 0.012 262);
   --sidebar-foreground: oklch(0.18 0.02 260);
   --sidebar-primary: oklch(0.47 0.19 265);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.955 0.012 265);
+  --sidebar-accent: oklch(0.93 0.035 268);
   --sidebar-accent-foreground: oklch(0.18 0.02 260);
-  --sidebar-border: oklch(0.88 0.008 255);
+  --sidebar-border: oklch(0.87 0.018 262);
   --sidebar-ring: oklch(0.47 0.19 265);
 }
 
 .dark {
-  --background: oklch(0.16 0.015 265);
+  --background: oklch(0.17 0.025 265);
   --foreground: oklch(0.96 0.005 260);
-  --card: oklch(0.2 0.016 265);
+  --card: oklch(0.21 0.028 265);
   --card-foreground: oklch(0.96 0.005 260);
-  --popover: oklch(0.2 0.016 265);
+  --popover: oklch(0.21 0.028 265);
   --popover-foreground: oklch(0.96 0.005 260);
   --primary: oklch(0.74 0.13 268);
   --primary-foreground: oklch(0.17 0.03 265);
-  --secondary: oklch(0.24 0.016 265);
+  --secondary: oklch(0.25 0.03 265);
   --secondary-foreground: oklch(0.96 0.005 260);
-  --muted: oklch(0.24 0.016 265);
-  --muted-foreground: oklch(0.72 0.015 260);
-  --accent: oklch(0.26 0.03 266);
+  --muted: oklch(0.25 0.03 265);
+  --muted-foreground: oklch(0.74 0.025 262);
+  --accent: oklch(0.28 0.05 268);
   --accent-foreground: oklch(0.96 0.005 260);
   --destructive: oklch(0.7 0.17 22);
-  --border: oklch(0.36 0.015 265);
-  --input: oklch(0.36 0.015 265);
+  --border: oklch(0.36 0.03 265);
+  --input: oklch(0.36 0.03 265);
   --ring: oklch(0.74 0.13 268);
-  --sidebar: oklch(0.19 0.016 265);
+  --glow-1: oklch(0.6 0.17 268 / 0.16);
+  --glow-2: oklch(0.6 0.1 220 / 0.1);
+  --sidebar: oklch(0.2 0.027 265);
   --sidebar-foreground: oklch(0.96 0.005 260);
   --sidebar-primary: oklch(0.74 0.13 268);
   --sidebar-primary-foreground: oklch(0.17 0.03 265);
-  --sidebar-accent: oklch(0.26 0.03 266);
+  --sidebar-accent: oklch(0.28 0.05 268);
   --sidebar-accent-foreground: oklch(0.96 0.005 260);
-  --sidebar-border: oklch(0.36 0.015 265);
+  --sidebar-border: oklch(0.36 0.03 265);
   --sidebar-ring: oklch(0.74 0.13 268);
 }
 
@@ -128,6 +133,8 @@
   --border: oklch(0.35 0 0);
   --input: oklch(0.35 0 0);
   --ring: oklch(0.38 0.2 265);
+  --glow-1: transparent;
+  --glow-2: transparent;
 }
 
 :root.dark[data-contrast="more"] {
@@ -149,6 +156,8 @@
   --border: oklch(0.78 0 0);
   --input: oklch(0.78 0 0);
   --ring: oklch(0.86 0.1 268);
+  --glow-1: transparent;
+  --glow-2: transparent;
 }
 
 :root[data-contrast="more"] a:not([data-slot]) {
@@ -216,6 +225,15 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* A soft colour wash behind the top of the page; flat in high contrast. */
+    background-image:
+      radial-gradient(
+        70rem 36rem at 10% -10rem,
+        var(--glow-1),
+        transparent 70%
+      ),
+      radial-gradient(60rem 32rem at 95% -8rem, var(--glow-2), transparent 70%);
+    background-repeat: no-repeat;
   }
   /* A clearly visible keyboard focus ring everywhere (WCAG 2.4.7 / 2.4.13). */
   :focus-visible {

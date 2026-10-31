@@ -35,7 +35,10 @@ export function SkillGroups({
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       {categories.map((category) => (
-        <div key={category.id} className="bg-card rounded-xl border p-5">
+        <div
+          key={category.id}
+          className="bg-card hover:border-primary/40 rounded-xl border p-5 transition-colors"
+        >
           <h3 className="mb-4 font-semibold">{category.name}</h3>
           <ul className="flex flex-col gap-2.5">
             {category.items.map((item) => (
