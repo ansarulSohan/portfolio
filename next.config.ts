@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
   // Self-contained server bundle in .next/standalone for the Docker image (Coolify).
   output: "standalone",
   poweredByHeader: false,
+  // No floating Next.js "N" button while developing.
+  devIndicators: false,
   cacheComponents: true,
   partialPrefetching: true,
   images: {

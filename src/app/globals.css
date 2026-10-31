@@ -31,6 +31,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-brand-2: var(--brand-2);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -58,8 +59,8 @@
   --popover-foreground: oklch(0.18 0.02 260);
   --primary: oklch(0.47 0.19 265);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.94 0.018 262);
-  --secondary-foreground: oklch(0.18 0.02 260);
+  --secondary: oklch(0.92 0.045 268);
+  --secondary-foreground: oklch(0.38 0.15 266);
   --muted: oklch(0.94 0.018 262);
   --muted-foreground: oklch(0.45 0.03 262);
   --accent: oklch(0.93 0.035 268);
@@ -70,8 +71,9 @@
   --ring: oklch(0.47 0.19 265);
   --radius: 0.625rem;
   /* Decorative only (page glow): a soft indigo and a cooler sky tint. */
-  --glow-1: oklch(0.55 0.2 268 / 0.18);
-  --glow-2: oklch(0.72 0.12 215 / 0.2);
+  --glow-1: oklch(0.6 0.2 270 / 0.28);
+  --glow-2: oklch(0.75 0.13 215 / 0.3);
+  --brand-2: oklch(0.62 0.13 225);
   --sidebar: oklch(0.96 0.012 262);
   --sidebar-foreground: oklch(0.18 0.02 260);
   --sidebar-primary: oklch(0.47 0.19 265);
@@ -91,8 +93,8 @@
   --popover-foreground: oklch(0.96 0.005 260);
   --primary: oklch(0.74 0.13 268);
   --primary-foreground: oklch(0.17 0.03 265);
-  --secondary: oklch(0.25 0.03 265);
-  --secondary-foreground: oklch(0.96 0.005 260);
+  --secondary: oklch(0.3 0.07 268);
+  --secondary-foreground: oklch(0.9 0.06 268);
   --muted: oklch(0.25 0.03 265);
   --muted-foreground: oklch(0.74 0.025 262);
   --accent: oklch(0.28 0.05 268);
@@ -101,8 +103,9 @@
   --border: oklch(0.36 0.03 265);
   --input: oklch(0.36 0.03 265);
   --ring: oklch(0.74 0.13 268);
-  --glow-1: oklch(0.6 0.17 268 / 0.16);
-  --glow-2: oklch(0.6 0.1 220 / 0.1);
+  --glow-1: oklch(0.6 0.18 270 / 0.24);
+  --glow-2: oklch(0.65 0.12 215 / 0.16);
+  --brand-2: oklch(0.75 0.11 220);
   --sidebar: oklch(0.2 0.027 265);
   --sidebar-foreground: oklch(0.96 0.005 260);
   --sidebar-primary: oklch(0.74 0.13 268);
@@ -135,6 +138,7 @@
   --ring: oklch(0.38 0.2 265);
   --glow-1: transparent;
   --glow-2: transparent;
+  --brand-2: var(--primary);
 }
 
 :root.dark[data-contrast="more"] {
@@ -158,6 +162,7 @@
   --ring: oklch(0.86 0.1 268);
   --glow-1: transparent;
   --glow-2: transparent;
+  --brand-2: var(--primary);
 }
 
 :root[data-contrast="more"] a:not([data-slot]) {

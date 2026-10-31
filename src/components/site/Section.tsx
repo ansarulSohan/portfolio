@@ -24,7 +24,7 @@ export function Section({
       <div className="mb-10 max-w-2xl">
         <span
           aria-hidden
-          className="bg-primary mb-4 block h-1 w-10 rounded-full"
+          className="from-primary to-brand-2 mb-4 block h-1 w-12 rounded-full bg-gradient-to-r"
         />
         <h2
           id={headingId}
