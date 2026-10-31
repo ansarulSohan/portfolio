@@ -28,7 +28,7 @@ Decisions already made:
 | 7. Uploads       | 🟡 Built and tested against R2 (2026-10-31). Browser uploads need bucket CORS and `S3_PUBLIC_URL` set (see notes)                                                                                                        |
 | 8. Hardening     | ✅ Done (2026-10-31): CSP + security headers, error pages, `/api/health`. CSP enforcement still to be verified in Playwright (phase 9)                                                                                   |
 | 9. Tests         | ✅ Done (2026-10-31): 42 Vitest unit tests + 44 Playwright e2e tests (incl. axe in 4 colour modes), all passing                                                                                                          |
-| 10. Deploy       | Not started                                                                                                                                                                                                              |
+| 10. Deploy       | 🟡 Ready (2026-10-31): Dockerfile + `docs/DEPLOY.md` for ansarulkabir.work; standalone server verified. Waiting on: Docker image build test, Coolify setup, credential rotation, R2 CORS/public URL                      |
 
 **Notes from phase 1:**
 
@@ -102,6 +102,13 @@ Decisions already made:
 - **Coverage:** axe (WCAG 2.2 A/AA, serious/critical) on 5 pages × light/dark/high-contrast/high-contrast-dark; the preferences menu (including no flash before hydration, checked by blocking JS bundles); public pages, the mobile menu and 404s; contact form → admin inbox; admin login/redirect/logout; project create → publish → public page → edit → delete; profile edit and clear; section hiding; reordering; security headers; CSP enforcement; anti-framing.
 - **Real bugs the tests found and fixed:** the root 404 page had no `<title>`; the accessibility menu overflowed the window at larger text with no way to scroll (now scrolls within the available height).
 - **CSP testing gotcha:** Chrome exempts DevTools-injected code (`page.evaluate`, `addScriptTag`, and the Claude-in-Chrome extension) from `'unsafe-eval'`, so "eval ran" proves nothing. The CSP test checks `connect-src` blocking instead.
+
+**Notes from phase 10:**
+
+- `Dockerfile`: node:22-alpine, multi-stage (deps → build → runner). It runs `node server.js` from `.next/standalone` as a non-root user, with a `HEALTHCHECK` on `/api/health`. Build args are only `NEXT_PUBLIC_SITE_URL` and `S3_PUBLIC_URL`; secrets are runtime-only.
+- **`.dockerignore` must exclude `.env*`.** Next's standalone output copies a root `.env` file into `.next/standalone/` (seen locally), so without the exclusion secrets could end up in the image. It also excludes `tests/` and the test configs, which import from `tests/`, because Next typechecks the whole project during the build.
+- The standalone server was verified with runtime env only (health, pages, sitemap with the production URL, OG image, `next/image`).
+- Step-by-step Coolify, Atlas and R2 setup is in `docs/DEPLOY.md`.
 
 ---
 

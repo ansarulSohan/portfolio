@@ -10,7 +10,7 @@ Personal portfolio for **G.M. Ansarul Kabir** (GitHub `ansarulSohan`). The old V
 
 **`docs/REBUILD_PLAN.md` is the source of truth** for architecture, data model, accessibility requirements and phase order. Read it before starting work, and update its phase status as phases complete.
 
-Phases 1–9 are built (scaffold, data layer, design system, public site, admin auth, admin editors, uploads, hardening, tests). Deployment (phase 10) comes next.
+All 10 phases are built. Production domain: **ansarulkabir.work**, deployed with Coolify from the `Dockerfile`. See `docs/DEPLOY.md` for env vars (build vs runtime), Atlas and R2 setup.
 
 ## Stack notes
 
@@ -58,7 +58,7 @@ pnpm exec tsx --conditions=react-server --tsconfig tsconfig.json <script>  # run
 
 ## Conventions
 
-- Env vars are listed in `.env.example`, with placeholders only. Real values go in `.env.local` (gitignored) or Coolify.
+- Env vars are listed in `.env.example`, with placeholders only. Only `NEXT_PUBLIC_SITE_URL` and `S3_PUBLIC_URL` are needed at build time; keep secrets runtime-only. Never let a `.env*` file into the Docker context (Next's standalone output copies `.env`). Real values go in `.env.local` (gitignored) or Coolify.
 - Unused vars and args are allowed when prefixed with `_`.
 - shadcn components import `cn` from `@/lib/utils`. The CLI generates `from "cn"`, so fix that after `shadcn add`.
 - No hardcoded personal content: anything the owner might change belongs in MongoDB and should be editable in the admin.
