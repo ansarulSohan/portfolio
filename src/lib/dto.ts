@@ -5,8 +5,10 @@
  */
 import type { Types } from "mongoose";
 import type {
+  CommentDoc,
   EducationDoc,
   ExperienceDoc,
+  PostDoc,
   ProfileDoc,
   ProjectDoc,
   SettingsDoc,
@@ -17,6 +19,7 @@ import type {
   ExperienceInput,
   FileInput,
   ImageInput,
+  PostStatus,
   ProfileInput,
   ProjectInput,
   SettingsInput,
@@ -153,6 +156,7 @@ export const DEFAULT_SETTINGS: SettingsDTO = {
     skills: true,
     education: true,
     contact: true,
+    blog: false,
   },
 };
 
@@ -167,6 +171,72 @@ export function toSettingsDTO(doc: Lean<SettingsDoc> | null): SettingsDTO {
       skills: doc.sections?.skills ?? sections.skills,
       education: doc.sections?.education ?? sections.education,
       contact: doc.sections?.contact ?? sections.contact,
+      blog: doc.sections?.blog ?? sections.blog,
     },
+  };
+}
+
+// ---- Blog ------------------------------------------------------------------
+
+/** A post in lists and the RSS feed (no body). */
+export interface PostSummaryDTO {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  tags: string[];
+  cover?: ImageInput;
+  status: PostStatus;
+  /** ISO time it goes or went live; absent for drafts never scheduled. */
+  publishAt?: string;
+  commentsOpen: boolean;
+  readingMinutes: number;
+  updatedAt: string;
+}
+
+export interface PostDTO extends PostSummaryDTO {
+  body: string;
+  /** Images uploaded into the body. */
+  images: { url: string; key: string }[];
+}
+
+/** What visitors see of a comment: no email, no IP hash. */
+export interface CommentDTO {
+  id: string;
+  name: string;
+  body: string;
+  createdAt: string;
+}
+
+export function toPostSummaryDTO(doc: Lean<PostDoc>): PostSummaryDTO {
+  return {
+    id: doc._id.toString(),
+    title: doc.title,
+    slug: doc.slug,
+    excerpt: doc.excerpt,
+    tags: [...doc.tags],
+    cover: toImage(doc.cover),
+    status: doc.status as PostStatus,
+    publishAt: doc.publishAt ? doc.publishAt.toISOString() : undefined,
+    commentsOpen: doc.commentsOpen,
+    readingMinutes: doc.readingMinutes,
+    updatedAt: iso(doc.updatedAt),
+  };
+}
+
+export function toPostDTO(doc: Lean<PostDoc>): PostDTO {
+  return {
+    ...toPostSummaryDTO(doc),
+    body: doc.body ?? "",
+    images: doc.images.map((image) => ({ url: image.url, key: image.key })),
+  };
+}
+
+export function toCommentDTO(doc: Lean<CommentDoc>): CommentDTO {
+  return {
+    id: doc._id.toString(),
+    name: doc.name,
+    body: doc.body,
+    createdAt: iso(doc.createdAt),
   };
 }

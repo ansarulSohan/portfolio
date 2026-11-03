@@ -137,6 +137,8 @@ const sectionsSchema = z.object({
   skills: z.boolean(),
   education: z.boolean(),
   contact: z.boolean(),
+  /** The /blog pages, their nav link and the RSS feed. */
+  blog: z.boolean(),
 });
 
 export const SECTION_KEYS = sectionsSchema.keyof().options;
@@ -154,6 +156,48 @@ export const contactSchema = z.object({
   website: z.string().max(0).optional(),
 });
 
+// ---- Blog ------------------------------------------------------------------
+
+export const POST_STATUSES = ["draft", "published"] as const;
+export const COMMENT_STATUSES = ["pending", "approved", "spam"] as const;
+
+/**
+ * A blog post as edited in the admin. The cover is managed by the upload UI.
+ * `publishAt` is a Norway wall-clock time from <input type="datetime-local">
+ * ("YYYY-MM-DDTHH:mm"); a published post with a future time is scheduled.
+ */
+export const postFormSchema = z.object({
+  title: requiredText(160),
+  slug: z
+    .string()
+    .trim()
+    .regex(SLUG_PATTERN, "Use lowercase letters, numbers and hyphens")
+    .max(80),
+  /** One or two sentences, shown in the post list, RSS and search results. */
+  excerpt: requiredText(300),
+  /** Markdown. */
+  body: z.string().trim().max(100_000, "Keep this under 100,000 characters."),
+  tags: stringList(10, 40),
+  status: z.enum(POST_STATUSES),
+  publishAt: z.preprocess(
+    (v) => (v === null || v === "" ? undefined : v),
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Choose a date and time.")
+      .optional(),
+  ),
+  commentsOpen: z.boolean(),
+});
+
+/** Public comment form. `website` is a honeypot, as on the contact form. */
+export const commentSchema = z.object({
+  postId: z.string().regex(/^[a-f0-9]{24}$/),
+  name: requiredText(80),
+  email: z.email(),
+  body: requiredText(2_000),
+  website: z.string().max(0).optional(),
+});
+
 export type ProfileInput = z.infer<typeof profileSchema>;
 export type ProjectInput = z.infer<typeof projectSchema>;
 export type ProfileFormInput = z.input<typeof profileFormSchema>;
@@ -165,3 +209,6 @@ export type SkillLevel = (typeof SKILL_LEVELS)[number];
 export type SettingsInput = z.infer<typeof settingsSchema>;
 export type SectionKey = (typeof SECTION_KEYS)[number];
 export type ContactInput = z.infer<typeof contactSchema>;
+export type PostFormInput = z.input<typeof postFormSchema>;
+export type PostStatus = (typeof POST_STATUSES)[number];
+export type CommentStatus = (typeof COMMENT_STATUSES)[number];

@@ -3,7 +3,7 @@
  * No server-only imports: the admin UI uses these to reject files early.
  */
 
-export type UploadKind = "avatar" | "resume" | "project";
+export type UploadKind = "avatar" | "resume" | "project" | "post";
 
 export const IMAGE_TYPES = {
   "image/jpeg": "jpg",
@@ -23,6 +23,11 @@ export const UPLOAD_RULES: Record<
     label: "JPEG, PNG, WebP or AVIF, up to 5 MB",
   },
   project: {
+    types: IMAGE_TYPES,
+    maxBytes: 5 * 1024 * 1024,
+    label: "JPEG, PNG, WebP or AVIF, up to 5 MB",
+  },
+  post: {
     types: IMAGE_TYPES,
     maxBytes: 5 * 1024 * 1024,
     label: "JPEG, PNG, WebP or AVIF, up to 5 MB",

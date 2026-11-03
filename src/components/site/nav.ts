@@ -7,12 +7,14 @@ export interface NavLink {
   section: SectionKey;
 }
 
-/** Home-page sections in display order, used by the header nav and the page itself. */
+/** Header links in display order: home-page sections, plus the blog page. */
 export const NAV_LINKS: NavLink[] = [
   { href: "/#about", label: "About", section: "about" },
   { href: "/#projects", label: "Projects", section: "projects" },
   { href: "/#experience", label: "Experience", section: "experience" },
   { href: "/#skills", label: "Skills", section: "skills" },
+  { href: "/#education", label: "Education", section: "education" },
+  { href: "/blog", label: "Blog", section: "blog" },
   { href: "/#contact", label: "Contact", section: "contact" },
 ];
 

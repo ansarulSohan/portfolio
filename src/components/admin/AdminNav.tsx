@@ -8,6 +8,8 @@ import {
   GraduationCapIcon,
   LayoutDashboardIcon,
   MailIcon,
+  MessageSquareIcon,
+  NewspaperIcon,
   SettingsIcon,
   SparklesIcon,
   UserIcon,
@@ -26,13 +28,26 @@ const ITEMS = [
   { href: "/admin/experience", label: "Experience", icon: BriefcaseIcon },
   { href: "/admin/education", label: "Education", icon: GraduationCapIcon },
   { href: "/admin/skills", label: "Skills", icon: SparklesIcon },
+  { href: "/admin/blog", label: "Blog", icon: NewspaperIcon },
+  { href: "/admin/comments", label: "Comments", icon: MessageSquareIcon },
   { href: "/admin/messages", label: "Messages", icon: MailIcon },
   { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 /** Sidebar on wide screens, a horizontally scrolling tab row on narrow ones. */
-export function AdminNav({ unread }: { unread: number }) {
+export function AdminNav({
+  unread,
+  pendingComments,
+}: {
+  unread: number;
+  pendingComments: number;
+}) {
   const pathname = usePathname();
+  // Items that need attention show a count.
+  const badges: Record<string, { count: number; label: string }> = {
+    "/admin/messages": { count: unread, label: "unread" },
+    "/admin/comments": { count: pendingComments, label: "awaiting approval" },
+  };
   return (
     <nav aria-label="Admin sections">
       <ul className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-col md:overflow-visible md:px-0 md:pb-0">
@@ -54,7 +69,7 @@ export function AdminNav({ unread }: { unread: number }) {
               >
                 <Icon className="size-4" aria-hidden />
                 {label}
-                {href === "/admin/messages" && unread > 0 && (
+                {(badges[href]?.count ?? 0) > 0 && (
                   <span
                     className={cn(
                       "ml-auto rounded-full px-1.5 text-xs tabular-nums",
@@ -63,8 +78,8 @@ export function AdminNav({ unread }: { unread: number }) {
                         : "bg-primary text-primary-foreground",
                     )}
                   >
-                    {unread}
-                    <span className="sr-only"> unread</span>
+                    {badges[href].count}
+                    <span className="sr-only"> {badges[href].label}</span>
                   </span>
                 )}
               </Link>

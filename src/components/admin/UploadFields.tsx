@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  addPostImage,
   setAvatar,
+  setPostCover,
   setProjectCover,
   setProjectGallery,
   setResume,
@@ -121,7 +123,7 @@ export function SingleImageField({
   save,
   previewClassName = "aspect-video w-full max-w-md",
 }: {
-  kind: "avatar" | "project";
+  kind: "avatar" | "project" | "post";
   label: string;
   description: string;
   current: ImageInput | null;
@@ -285,6 +287,135 @@ export function CoverField({
       current={current}
       save={(image) => setProjectCover(projectId, image)}
     />
+  );
+}
+
+export function PostCoverField({
+  postId,
+  current,
+}: {
+  postId: string;
+  current: ImageInput | null;
+}) {
+  return (
+    <SingleImageField
+      key={current?.key ?? "none"}
+      kind="post"
+      label="Cover image"
+      description="Shown at the top of the post and when it's shared. 16:9 works best."
+      current={current}
+      save={(image) => setPostCover(postId, image)}
+    />
+  );
+}
+
+/**
+ * Upload an image into a post's body: describe it, upload, and the Markdown is
+ * inserted at the cursor. Removing the Markdown and saving deletes the file.
+ */
+export function InsertImage({
+  postId,
+  onInsert,
+}: {
+  postId: string;
+  onInsert: (markdown: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [alt, setAlt] = useState("");
+  const preview = usePreview(file);
+  const { upload, progress, uploading } = useUpload("post");
+  const { pending, run } = useAdminAction();
+  const altId = useId();
+  const busy = uploading || pending;
+
+  const close = () => {
+    setOpen(false);
+    setFile(null);
+    setAlt("");
+  };
+
+  const submit = async () => {
+    if (!file) return;
+    const description = alt.trim().replace(/[[\]]/g, "");
+    if (!description) {
+      toast.error("Describe the image first (alt text).");
+      document.getElementById(altId)?.focus();
+      return;
+    }
+    const result = await upload(file);
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
+    }
+    run(() => addPostImage(postId, { url: result.url, key: result.key }), {
+      refresh: false,
+      onSuccess: () => {
+        onInsert(`![${description}](${result.url})`);
+        close();
+      },
+    });
+  };
+
+  if (!open) {
+    return (
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="self-start"
+        onClick={() => setOpen(true)}
+      >
+        <ImagePlusIcon aria-hidden data-icon="inline-start" />
+        Insert image
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-dashed p-4">
+      <p className="text-sm font-medium">
+        Insert an image at the cursor{" "}
+        <span className="text-muted-foreground font-normal">
+          ({UPLOAD_RULES.post.label})
+        </span>
+      </p>
+      {preview && (
+        // eslint-disable-next-line @next/next/no-img-element -- local preview
+        <img
+          src={preview}
+          alt=""
+          className="bg-muted aspect-video w-48 rounded border object-cover"
+        />
+      )}
+      {progress !== null && <Progress value={progress} />}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={altId}>Image description (alt text)</Label>
+        <Input
+          id={altId}
+          value={alt}
+          maxLength={300}
+          onChange={(event) => setAlt(event.target.value)}
+          placeholder="e.g. Diagram of the request flow"
+        />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <FilePicker
+          kind="post"
+          label={file ? "Choose another file" : "Choose file"}
+          disabled={busy}
+          onPick={setFile}
+        />
+        {file && (
+          <Button type="button" onClick={submit} disabled={busy}>
+            {uploading ? "Uploading…" : pending ? "Saving…" : "Upload & insert"}
+          </Button>
+        )}
+        <Button type="button" variant="ghost" disabled={busy} onClick={close}>
+          Cancel
+        </Button>
+      </div>
+    </div>
   );
 }
 

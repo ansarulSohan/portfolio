@@ -29,6 +29,7 @@ Decisions already made:
 | 8. Hardening     | ✅ Done (2026-10-31): CSP + security headers, error pages, `/api/health`. CSP enforcement still to be verified in Playwright (phase 9)                                                                                   |
 | 9. Tests         | ✅ Done (2026-10-31): 42 Vitest unit tests + 44 Playwright e2e tests (incl. axe in 4 colour modes), all passing                                                                                                          |
 | 10. Deploy       | 🟡 Ready (2026-10-31): Dockerfile + `docs/DEPLOY.md` for ansarulkabir.work; standalone server verified. Waiting on: Docker image build test, Coolify setup, credential rotation, R2 CORS/public URL                      |
+| 11. Blog         | 🟡 Built (2026-11-02), uncommitted: posts with drafts, scheduling, tags, cover and inline images, moderated comments, RSS. Off by default (Settings → Sections). Unit and e2e tests added                       |
 
 **Notes from phase 1:**
 
@@ -109,6 +110,16 @@ Decisions already made:
 - **`.dockerignore` must exclude `.env*`.** Next's standalone output copies a root `.env` file into `.next/standalone/` (seen locally), so without the exclusion secrets could end up in the image. It also excludes `tests/` and the test configs, which import from `tests/`, because Next typechecks the whole project during the build.
 - The standalone server was verified with runtime env only (health, pages, sitemap with the production URL, OG image, `next/image`).
 - Step-by-step Coolify, Atlas and R2 setup is in `docs/DEPLOY.md`.
+
+**Notes from phase 11 (blog):**
+
+- **Models:** `Post` (status `draft | published` + `publishAt`) and `Comment` (status `pending | approved | spam`). A post is public when it's published and `publishAt` has passed; `postState()` in `lib/blog.ts` is the single rule.
+- **Scheduling has no cron.** The cached public post list sets `cacheLife()` so it expires when the next scheduled post is due (between 1 minute and 1 hour, `secondsUntil()`); admin saves still refresh it at once through `updateTag()`.
+- **Times are Norway time.** The editor's datetime field is read as Europe/Oslo by `zonedInputToDate()` (handles summer time), so the server's time zone doesn't matter.
+- **Comments are plain text and always start as pending.** The public form has a honeypot and a rate limit (5 per 10 minutes per IP). Visitor emails are never in public DTOs.
+- **Body images** use upload kind `post`. `addPostImage` records each one on the post; saving a post deletes images its text no longer uses, and deleting a post deletes its cover, images and comments.
+- **The `blog` section setting defaults to off**, which hides `/blog`, its posts, the nav link, the sitemap entries and the RSS feed (404).
+- **E2E:** sign-ins are rate limited (10 per 15 minutes per IP), so `blog.spec.ts` signs in once and reuses that page for admin steps. Axe helpers are shared in `tests/e2e/axe.ts`.
 
 ---
 

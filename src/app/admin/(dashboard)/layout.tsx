@@ -9,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { Toaster } from "@/components/ui/sonner";
-import { countUnreadMessages } from "@/lib/admin-queries";
+import { countPendingComments, countUnreadMessages } from "@/lib/admin-queries";
 import { requireAdmin } from "@/lib/auth";
 
 /** Reads the session, so it renders inside the layout's Suspense boundary. */
 async function AdminGate({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  const unread = await countUnreadMessages();
+  const [unread, pendingComments] = await Promise.all([
+    countUnreadMessages(),
+    countPendingComments(),
+  ]);
   return (
     <>
       <header className="bg-background sticky top-0 z-40 border-b">
@@ -48,7 +51,7 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
       </header>
       <div className="mx-auto grid w-full max-w-6xl flex-1 gap-6 px-4 py-6 sm:px-6 md:grid-cols-[13rem_minmax(0,1fr)] md:py-8">
         <aside className="md:sticky md:top-20 md:self-start">
-          <AdminNav unread={unread} />
+          <AdminNav unread={unread} pendingComments={pendingComments} />
         </aside>
         <main id="main" tabIndex={-1} className="min-w-0 outline-none">
           {children}

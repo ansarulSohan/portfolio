@@ -2,30 +2,41 @@ import "server-only";
 import { cacheLife, cacheTag, io } from "next/cache";
 import { connectDB } from "./db";
 import { TAGS } from "./cache-tags";
+import { secondsUntil } from "./blog";
 import {
+  toCommentDTO,
   toEducationDTO,
   toExperienceDTO,
+  toPostDTO,
+  toPostSummaryDTO,
   toProfileDTO,
   toProjectDTO,
   toSettingsDTO,
   toSkillCategoryDTO,
+  type CommentDTO,
   type EducationDTO,
   type ExperienceDTO,
   type Lean,
+  type PostDTO,
+  type PostSummaryDTO,
   type ProfileDTO,
   type ProjectDTO,
   type SettingsDTO,
   type SkillCategoryDTO,
 } from "./dto";
 import {
+  Comment,
   Education,
   Experience,
+  Post,
   Profile,
   Project,
   Settings,
   SkillCategory,
+  type CommentDoc,
   type EducationDoc,
   type ExperienceDoc,
+  type PostDoc,
   type ProfileDoc,
   type ProjectDoc,
   type SettingsDoc,
@@ -122,6 +133,86 @@ async function cachedSkillCategories(): Promise<SkillCategoryDTO[]> {
     .sort({ order: 1 })
     .lean<Lean<SkillCategoryDoc>[]>();
   return docs.map(toSkillCategoryDTO);
+}
+
+/*
+ * Blog. A post is public once it's published and its publishAt has passed, so
+ * scheduled posts go live without a cron job: the cached list expires when the
+ * next scheduled post is due (see secondsUntil), and admin saves refresh it
+ * immediately through updateTag().
+ */
+
+/** Cache lifetime that ends when `next` is due (or within an hour). */
+function lifeUntil(next: Date | null | undefined) {
+  const seconds = secondsUntil(next);
+  cacheLife({ stale: 30, revalidate: seconds, expire: seconds + 300 });
+}
+
+async function cachedPublicPosts(): Promise<PostSummaryDTO[]> {
+  "use cache";
+  cacheTag(TAGS.posts);
+  await connectDB();
+  const now = new Date();
+  const [docs, next] = await Promise.all([
+    Post.find({ status: "published", publishAt: { $lte: now } })
+      .select("-body -images")
+      .sort({ publishAt: -1 })
+      .lean<Lean<PostDoc>[]>(),
+    Post.findOne({ status: "published", publishAt: { $gt: now } })
+      .sort({ publishAt: 1 })
+      .select("publishAt")
+      .lean<{ publishAt?: Date }>(),
+  ]);
+  lifeUntil(next?.publishAt);
+  return docs.map(toPostSummaryDTO);
+}
+
+async function cachedPublicPost(slug: string): Promise<PostDTO | null> {
+  "use cache";
+  cacheTag(TAGS.posts, TAGS.post(slug));
+  await connectDB();
+  const doc = await Post.findOne({ slug, status: "published" }).lean<
+    Lean<PostDoc>
+  >();
+  if (doc?.publishAt && doc.publishAt > new Date()) {
+    // Scheduled: hidden until it's due.
+    lifeUntil(doc.publishAt);
+    return null;
+  }
+  cacheLife("hours");
+  return doc?.publishAt ? toPostDTO(doc) : null;
+}
+
+async function cachedApprovedComments(postId: string): Promise<CommentDTO[]> {
+  "use cache";
+  cacheTag(TAGS.comments(postId));
+  cacheLife("hours");
+  await connectDB();
+  const docs = await Comment.find({ post: postId, status: "approved" })
+    .sort({ createdAt: 1 })
+    .limit(500)
+    .lean<Lean<CommentDoc>[]>();
+  return docs.map(toCommentDTO);
+}
+
+/** Public posts, newest first. */
+export async function getPublicPosts(): Promise<PostSummaryDTO[]> {
+  await io();
+  return cachedPublicPosts();
+}
+
+/** A public post by slug, or null for drafts, scheduled and unknown posts. */
+export async function getPublicPost(slug: string): Promise<PostDTO | null> {
+  await io();
+  return cachedPublicPost(slug);
+}
+
+/** A post's approved comments, oldest first. */
+export async function getApprovedComments(
+  postId: string,
+): Promise<CommentDTO[]> {
+  await io();
+  return cachedApprovedComments(postId);
 }
 
 export async function getProfile(): Promise<ProfileDTO | null> {
