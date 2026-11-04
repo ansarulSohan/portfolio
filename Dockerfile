@@ -35,7 +35,9 @@ ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} \
     S3_PUBLIC_URL=${S3_PUBLIC_URL} \
     NEXT_TELEMETRY_DISABLED=1
 
-RUN pnpm build
+# public/ may not exist in a git checkout (git doesn't track empty folders),
+# but the runner stage copies it.
+RUN mkdir -p public && pnpm build
 
 # ---- runner: just the standalone output -----------------------------------------
 FROM node:${NODE_VERSION} AS runner
