@@ -1,5 +1,5 @@
-import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { MODES, serious } from "./axe";
 
 /*
  * Automated WCAG 2.2 A/AA checks with axe on the main public pages, in light,
@@ -15,34 +15,6 @@ const PAGES = [
   "/does-not-exist",
   "/admin/login",
 ];
-
-const MODES = {
-  light: { colorScheme: "light" as const, prefs: { theme: "light" } },
-  dark: { colorScheme: "dark" as const, prefs: { theme: "dark" } },
-  "high contrast": {
-    colorScheme: "light" as const,
-    prefs: { theme: "light", contrast: "on" },
-  },
-  "high contrast dark": {
-    colorScheme: "dark" as const,
-    prefs: { theme: "dark", contrast: "on" },
-  },
-};
-
-async function serious(page: Page) {
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-    .analyze();
-  return results.violations
-    .filter((v) => v.impact === "serious" || v.impact === "critical")
-    .map(
-      (v) =>
-        `${v.id} (${v.impact}): ${v.help}\n  ${v.nodes
-          .map((n) => n.target.join(" "))
-          .slice(0, 5)
-          .join("\n  ")}`,
-    );
-}
 
 for (const [mode, { colorScheme, prefs }] of Object.entries(MODES)) {
   test.describe(`axe: ${mode}`, () => {

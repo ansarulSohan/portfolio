@@ -6,6 +6,8 @@ import {
   FolderGit2Icon,
   GraduationCapIcon,
   MailIcon,
+  MessageSquareIcon,
+  NewspaperIcon,
   SparklesIcon,
   UserIcon,
 } from "lucide-react";
@@ -27,6 +29,22 @@ export default async function AdminDashboardPage() {
       value:
         stats.unread > 0 ? `${stats.unread} unread` : `${stats.messages} total`,
       highlight: stats.unread > 0,
+    },
+    {
+      href: "/admin/comments",
+      icon: MessageSquareIcon,
+      label: "Comments",
+      value:
+        stats.pendingComments > 0
+          ? `${stats.pendingComments} awaiting approval`
+          : "Nothing to approve",
+      highlight: stats.pendingComments > 0,
+    },
+    {
+      href: "/admin/blog",
+      icon: NewspaperIcon,
+      label: "Blog",
+      value: `${stats.posts} post${stats.posts === 1 ? "" : "s"}`,
     },
     {
       href: "/admin/projects",

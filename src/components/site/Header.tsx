@@ -3,9 +3,13 @@ import Link from "next/link";
 import { AccessibilityMenu } from "@/components/a11y/AccessibilityMenu";
 import { ThemeToggle } from "@/components/a11y/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DEFAULT_SETTINGS } from "@/lib/dto";
 import { getProfile, getSettings } from "@/lib/queries";
 import { MobileNav } from "./MobileNav";
-import { NAV_LINKS, visibleNavLinks, type NavLink } from "./nav";
+import { visibleNavLinks, type NavLink } from "./nav";
+
+// While settings load, show the default links (the blog is off by default).
+const FALLBACK_LINKS = visibleNavLinks(DEFAULT_SETTINGS);
 
 async function Brand() {
   const profile = await getProfile();
@@ -29,12 +33,12 @@ function NavList({ links }: { links: NavLink[] }) {
   );
 }
 
-/** Nav filtered by the admin's section settings; the full list renders while loading. */
+/** Nav filtered by the admin's section settings. */
 async function Nav() {
   const links = visibleNavLinks(await getSettings());
   return (
     <>
-      <nav aria-label="Main" className="hidden md:block">
+      <nav aria-label="Main" className="hidden lg:block">
         <NavList links={links} />
       </nav>
       <MobileNav links={links} />
@@ -45,10 +49,10 @@ async function Nav() {
 function NavFallback() {
   return (
     <>
-      <nav aria-label="Main" className="hidden md:block">
-        <NavList links={NAV_LINKS} />
+      <nav aria-label="Main" className="hidden lg:block">
+        <NavList links={FALLBACK_LINKS} />
       </nav>
-      <MobileNav links={NAV_LINKS} />
+      <MobileNav links={FALLBACK_LINKS} />
     </>
   );
 }
@@ -68,7 +72,7 @@ export function Header() {
         <Suspense fallback={<NavFallback />}>
           <Nav />
         </Suspense>
-        <div className="flex items-center gap-1 md:ml-2 md:border-l md:pl-2">
+        <div className="flex items-center gap-1 lg:ml-2 lg:border-l lg:pl-2">
           <ThemeToggle />
           <AccessibilityMenu />
         </div>

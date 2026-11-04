@@ -22,6 +22,7 @@ const SECTION_LABELS: Record<SectionKey, string> = {
   skills: "Skills",
   education: "Education",
   contact: "Contact form",
+  blog: "Blog (its page, nav link and RSS feed)",
 };
 
 export function SectionsForm({ settings }: { settings: SettingsDTO }) {
@@ -30,14 +31,14 @@ export function SectionsForm({ settings }: { settings: SettingsDTO }) {
   return (
     <EditorShell
       title="Settings"
-      description="Choose which sections appear on the home page."
+      description="Choose which sections appear on the site."
       onSubmit={() => run(() => saveSettings({ sections }))}
       pending={pending}
       submitLabel="Save sections"
       formError={errors._form}
     >
       <EditorSection
-        title="Home page sections"
+        title="Sections"
         description="Hidden sections also disappear from the navigation."
       >
         <div className="grid gap-3 sm:grid-cols-2">

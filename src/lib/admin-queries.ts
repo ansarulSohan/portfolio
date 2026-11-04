@@ -2,8 +2,11 @@ import "server-only";
 import { Types } from "mongoose";
 import { requireAdmin } from "./auth";
 import { connectDB } from "./db";
+import type { CommentStatus } from "./validation";
 import {
   toEducationDTO,
+  toPostDTO,
+  toPostSummaryDTO,
   toExperienceDTO,
   toProfileDTO,
   toProjectDTO,
@@ -12,22 +15,28 @@ import {
   type EducationDTO,
   type ExperienceDTO,
   type Lean,
+  type PostDTO,
+  type PostSummaryDTO,
   type ProfileDTO,
   type ProjectDTO,
   type SettingsDTO,
   type SkillCategoryDTO,
 } from "./dto";
 import {
+  Comment,
   Education,
   Experience,
   Message,
+  Post,
   Profile,
   Project,
   Settings,
   SkillCategory,
   type EducationDoc,
   type ExperienceDoc,
+  type CommentDoc,
   type MessageDoc,
+  type PostDoc,
   type ProfileDoc,
   type ProjectDoc,
   type SettingsDoc,
@@ -153,16 +162,27 @@ export async function listMessages(): Promise<MessageDTO[]> {
 
 export async function getDashboardStats() {
   await adminDB();
-  const [projects, published, experience, education, skills, messages, unread] =
-    await Promise.all([
-      Project.countDocuments(),
-      Project.countDocuments({ published: true }),
-      Experience.countDocuments(),
-      Education.countDocuments(),
-      SkillCategory.countDocuments(),
-      Message.countDocuments(),
-      Message.countDocuments({ read: false }),
-    ]);
+  const [
+    projects,
+    published,
+    experience,
+    education,
+    skills,
+    messages,
+    unread,
+    posts,
+    pendingComments,
+  ] = await Promise.all([
+    Project.countDocuments(),
+    Project.countDocuments({ published: true }),
+    Experience.countDocuments(),
+    Education.countDocuments(),
+    SkillCategory.countDocuments(),
+    Message.countDocuments(),
+    Message.countDocuments({ read: false }),
+    Post.countDocuments(),
+    Comment.countDocuments({ status: "pending" }),
+  ]);
   return {
     projects,
     published,
@@ -171,10 +191,97 @@ export async function getDashboardStats() {
     skills,
     messages,
     unread,
+    posts,
+    pendingComments,
   };
 }
 
 export async function countUnreadMessages(): Promise<number> {
   await adminDB();
   return Message.countDocuments({ read: false });
+}
+
+// ---- Blog ------------------------------------------------------------------
+
+export type AdminPostRow = PostSummaryDTO & { pendingComments: number };
+
+/** Every post (drafts and scheduled too), newest first, with pending comment counts. */
+export async function listPosts(): Promise<AdminPostRow[]> {
+  await adminDB();
+  const [docs, pending] = await Promise.all([
+    Post.find()
+      .select("-body -images")
+      .sort({ publishAt: -1, createdAt: -1 })
+      .lean<Lean<PostDoc>[]>(),
+    Comment.aggregate<{ _id: Types.ObjectId; count: number }>([
+      { $match: { status: "pending" } },
+      { $group: { _id: "$post", count: { $sum: 1 } } },
+    ]),
+  ]);
+  const counts = new Map(pending.map((row) => [row._id.toString(), row.count]));
+  return docs.map((doc) => ({
+    ...toPostSummaryDTO(doc),
+    pendingComments: counts.get(doc._id.toString()) ?? 0,
+  }));
+}
+
+export async function getPost(id: string): Promise<PostDTO | null> {
+  await adminDB();
+  if (!validId(id)) return null;
+  const doc = await Post.findById(id).lean<Lean<PostDoc>>();
+  return doc ? toPostDTO(doc) : null;
+}
+
+export interface AdminCommentDTO {
+  id: string;
+  name: string;
+  email: string;
+  body: string;
+  status: CommentStatus;
+  createdAt: string;
+  post: { id: string; title: string; slug: string } | null;
+}
+
+/** The moderation queue for one status, newest first. */
+export async function listComments(
+  status: CommentStatus,
+): Promise<AdminCommentDTO[]> {
+  await adminDB();
+  const docs = await Comment.find({ status })
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .lean<Lean<CommentDoc>[]>();
+  const posts = await Post.find({ _id: { $in: docs.map((doc) => doc.post) } })
+    .select("title slug")
+    .lean<{ _id: Types.ObjectId; title: string; slug: string }[]>();
+  const byId = new Map(posts.map((post) => [post._id.toString(), post]));
+  return docs.map((doc) => {
+    const post = byId.get(doc.post.toString());
+    return {
+      id: doc._id.toString(),
+      name: doc.name,
+      email: doc.email,
+      body: doc.body,
+      status: doc.status as CommentStatus,
+      createdAt: (doc.createdAt ?? new Date(0)).toISOString(),
+      post: post
+        ? { id: post._id.toString(), title: post.title, slug: post.slug }
+        : null,
+    };
+  });
+}
+
+export async function countComments(): Promise<Record<CommentStatus, number>> {
+  await adminDB();
+  const [pending, approved, spam] = await Promise.all(
+    (["pending", "approved", "spam"] as const).map((status) =>
+      Comment.countDocuments({ status }),
+    ),
+  );
+  return { pending, approved, spam };
+}
+
+export async function countPendingComments(): Promise<number> {
+  await adminDB();
+  return Comment.countDocuments({ status: "pending" });
 }

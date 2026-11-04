@@ -1,7 +1,9 @@
 export { Admin, type AdminDoc } from "./Admin";
+export { Comment, type CommentDoc } from "./Comment";
 export { Education, type EducationDoc } from "./Education";
 export { Experience, type ExperienceDoc } from "./Experience";
 export { Message, type MessageDoc } from "./Message";
+export { Post, type PostDoc } from "./Post";
 export { Profile, type ProfileDoc } from "./Profile";
 export { Project, type ProjectDoc } from "./Project";
 export { Settings, type SettingsDoc } from "./Settings";

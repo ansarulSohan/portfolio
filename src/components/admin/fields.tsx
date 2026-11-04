@@ -482,10 +482,16 @@ export function MarkdownField({
   value,
   onChange,
   rows = 12,
+  textareaRef,
+  toolbar,
 }: BaseProps & {
   value: string;
   onChange: (value: string) => void;
   rows?: number;
+  /** Lets an editor insert text at the cursor (e.g. an uploaded image). */
+  textareaRef?: React.Ref<HTMLTextAreaElement>;
+  /** Extra controls shown next to Write / Preview while writing. */
+  toolbar?: React.ReactNode;
 }) {
   const id = useId();
   const [preview, setPreview] = useState(false);
@@ -520,6 +526,7 @@ export function MarkdownField({
           Preview
         </Button>
       </div>
+      {!preview && toolbar}
       {preview ? (
         <div
           className="bg-card min-h-40 rounded-lg border p-4"
@@ -535,6 +542,7 @@ export function MarkdownField({
         </div>
       ) : (
         <Textarea
+          ref={textareaRef}
           id={id}
           rows={rows}
           value={value}

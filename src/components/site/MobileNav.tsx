@@ -22,7 +22,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="lg:hidden"
           aria-label="Open menu"
         >
           <MenuIcon aria-hidden />

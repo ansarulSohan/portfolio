@@ -15,6 +15,8 @@ const settingsSchema = new Schema(
       skills: { type: Boolean, default: true },
       education: { type: Boolean, default: true },
       contact: { type: Boolean, default: true },
+      // Off until the owner turns it on, so an empty blog never shows.
+      blog: { type: Boolean, default: false },
     },
   },
   { timestamps: true },

@@ -12,4 +12,9 @@ export const TAGS = {
   education: "education",
   skills: "skills",
   settings: "settings",
+  /** Every public post list (blog page, RSS, sitemap). */
+  posts: "posts",
+  post: (slug: string) => `post:${slug}`,
+  /** One post's approved comments. */
+  comments: (postId: string) => `comments:${postId}`,
 } as const;

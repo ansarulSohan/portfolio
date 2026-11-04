@@ -27,7 +27,7 @@ import {
   type FileInput,
   type ImageInput,
 } from "@/lib/validation";
-import { Profile, Project } from "@/models";
+import { Post, Profile, Project } from "@/models";
 
 /*
  * Upload flow:
@@ -262,4 +262,67 @@ export async function setProjectGallery(
   updateTag(TAGS.projects);
   updateTag(TAGS.project(project.slug));
   return { ok: true, message: "Gallery saved." };
+}
+
+// ---- Blog post cover and body images ---------------------------------------
+
+export async function setPostCover(
+  postId: string,
+  input: ImageInput | null,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (!isValidId(postId)) return NOT_FOUND;
+  await connectDB();
+  const post = await Post.findById(postId).select("cover slug").lean();
+  if (!post) return NOT_FOUND;
+  const current = post.cover ?? null;
+
+  if (input === null) {
+    await Post.updateOne({ _id: postId }, { $unset: { cover: 1 } });
+    await deleteObject(current?.key);
+  } else {
+    const parsed = imageSchema.safeParse(input);
+    if (!parsed.success) return invalidImage(parsed.error);
+    if (parsed.data.key !== current?.key) {
+      const problem = await verifyUpload(
+        "post",
+        parsed.data.key,
+        parsed.data.url,
+      );
+      if (problem) return { ok: false, message: problem };
+    }
+    await Post.updateOne({ _id: postId }, { $set: { cover: parsed.data } });
+    if (current?.key && current.key !== parsed.data.key)
+      await deleteObject(current.key);
+  }
+
+  updateTag(TAGS.posts);
+  updateTag(TAGS.post(post.slug));
+  return {
+    ok: true,
+    message: input === null ? "Cover removed." : "Cover saved.",
+  };
+}
+
+const bodyImageSchema = imageSchema.pick({ url: true, key: true });
+
+/**
+ * Record an image uploaded into a post's body, so it's deleted with the post.
+ * The editor inserts the Markdown; images the body no longer uses are removed
+ * from storage when the post is saved.
+ */
+export async function addPostImage(
+  postId: string,
+  input: { url: string; key: string },
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (!isValidId(postId)) return NOT_FOUND;
+  const parsed = bodyImageSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "That image isn't valid." };
+  await connectDB();
+  if (!(await Post.exists({ _id: postId }))) return NOT_FOUND;
+  const problem = await verifyUpload("post", parsed.data.key, parsed.data.url);
+  if (problem) return { ok: false, message: problem };
+  await Post.updateOne({ _id: postId }, { $addToSet: { images: parsed.data } });
+  return { ok: true, message: "Image added. Save the post to publish it." };
 }
